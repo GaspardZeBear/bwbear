@@ -22,24 +22,16 @@ PP={
 }
 
 #--------------------------------------------------------------------------------------
-def graphErrors(datas,title) :
-  #datas['ts']=datas['StartTime'].apply(lambda x: x[0].timestamp(), axis=1).astype(int)
-  stime=datas
-  stime['StartTime']=pd.to_datetime(stime['StartTime'],infer_datetime_format=True)
-  print(stime.head())
-  stime.set_index('StartTime',inplace=True)
-  print(stime.head())
-  stime.index = stime.index.floor('1T')
-  print(stime.head())
+def graphAggregatedCount(datas,col,title,color='blue') :
+  datas['StartTime']=pd.to_datetime(datas['StartTime'],infer_datetime_format=True)
+  datas.set_index('StartTime',inplace=True)
+  datas.index = datas.index.floor('1T')
   plt.figure(figsize=(16,4))
-  print(stime.groupby('StartTime')['ErrorState'].count())
-  stime.groupby('StartTime')['ErrorState'].count().plot.bar(title=title,rot=0,color='red')
+  print(datas.groupby('StartTime')[col].count())
+  datas.groupby('StartTime')[col].count().plot.bar(title=title,rot=45,color='red')
   f=title + '.png'
   plt.savefig(f)
   OUT.image(f,title)
-
-
-
 
 #--------------------------------------------------------------------------------------
 def renamePP(u) :
@@ -72,30 +64,20 @@ def getRawdatas(f='cb.csv') :
   return(rawdatas)
 
 #--------------------------------------------------------------------------------------
-def myPlotBarResponseTime(datas,title) :
+def myPlotBarResponseTime(datas,title,color='blue') :
   if datas.empty :
     return 
   rtime=datas['ResponseTime']
   plt.figure(figsize=(17,4))
-  rtime.plot.bar(title=title,rot=0,color='blue')
+  rtime.plot.bar(title=title,rot=45,color=color)
   f=title + '.png'
   plt.savefig(f)
   OUT.image(f,title)
 
 #--------------------------------------------------------------------------------------
-def XgraphErrors(datas,title) :
-  #datas['ts']=datas['StartTime'].apply(lambda x: x[0].timestamp(), axis=1).astype(int)
-  stime=datas
-  stime['x']=pd.to_datetime(stime['StartTime'],infer_datetime_format=True)
-  print(stime.head())
-  stime.set_index('x',inplace=True)
-  print(stime.head())
-  stime.index = stime.index.floor('1H')
-  plt.figure(figsize=(16,4))
-  stime.plot.hist(title=title,rot=0,color='red')
-  f=title + '.png'
-  plt.savefig(f)
-  OUT.image(f,title)
+def myGraphs(datas,title,color='blue') :
+  myPlotBarResponseTime(datas,title,color)
+  graphAggregatedCount(datas, 'ErrorState', title)
 
 
 #--------------------------------------------------------------------------------------
@@ -117,21 +99,25 @@ groupByDescribe(rawDatas,["ErrorState"])
 dfKO=rawDatas[ ( rawDatas['ErrorState'] != 'OK') ]
 groupByDescribe(dfKO,["Agent"])
 groupByDescribe(dfKO,["PurePath"])
-graphErrors(dfKO,'Errors')
+graphAggregatedCount(dfKO, 'ErrorState','Errors')
 
-sys.exit()
 OUT.h2("Analyzing transactions in status OK ")
 dfOK=rawDatas[ ( rawDatas['ErrorState'] == 'OK' ) ]
+graphAggregatedCount(dfOK, 'PurePath','OK')
 groupByDescribe(dfOK,["Agent"])
 groupByDescribe(dfOK,["PurePath"])
-myPlotBarResponseTime(dfOK,'All')
-myPlotBarResponseTime(dfOK[ ( dfOK['PurePath'] == 'RemiseDetail') ] ,'RemiseDetail')
-myPlotBarResponseTime(dfOK[ ( dfOK['PurePath'] == 'RemiseTab') ] ,'RemiseTab')
-myPlotBarResponseTime(dfOK[ ( dfOK['PurePath'] == 'Result5') ] ,'Result5')
-myPlotBarResponseTime(dfOK[ ( dfOK['PurePath'] == 'SearchRemisesDate') ] ,'SearchRemisesDate')
-myPlotBarResponseTime(dfOK[ ( dfOK['PurePath'] == 'SearchTransactionsDate') ] ,'SearchTransactionsDate')
-myPlotBarResponseTime(dfOK[ ( dfOK['PurePath'] == 'SearchTransactionsDateScheme') ] ,'SearchTransactionsDateScheme')
-myPlotBarResponseTime(dfOK[ ( dfOK['PurePath'] == 'TransactionDetail') ] ,'TransactionDetail')
+myPlotBarResponseTime(dfOK,'All response time')
+myGraphs(dfOK,'All response time')
+#graphAggregatedCount(dfKO, 'ErrorState','All')
+#sys.exit()
+myPlotBarResponseTime(dfOK[ ( dfOK['PurePath'] == 'RemiseDetail') ] ,'RemiseDetail response time')
+#myGraphs(dfOK[ ( dfOK['PurePath'] == 'RemiseDetail') ] ,'RemiseDetail response time')
+myPlotBarResponseTime(dfOK[ ( dfOK['PurePath'] == 'RemiseTab') ] ,'RemiseTab response time')
+myPlotBarResponseTime(dfOK[ ( dfOK['PurePath'] == 'Result5') ] ,'Result5 response time')
+myPlotBarResponseTime(dfOK[ ( dfOK['PurePath'] == 'SearchRemisesDate') ] ,'SearchRemisesDate response time')
+myPlotBarResponseTime(dfOK[ ( dfOK['PurePath'] == 'SearchTransactionsDate') ] ,'SearchTransactionsDate response time')
+myPlotBarResponseTime(dfOK[ ( dfOK['PurePath'] == 'SearchTransactionsDateScheme') ] ,'SearchTransactionsDateScheme response time')
+myPlotBarResponseTime(dfOK[ ( dfOK['PurePath'] == 'TransactionDetail') ] ,'TransactionDetail response time')
 
 OUT.h2("Analyzing transactions with high response time")
 groupByDescribe(dfOK[ ( dfOK['ResponseTime'] > 5000 ) ],["PurePath"])
