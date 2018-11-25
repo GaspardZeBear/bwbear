@@ -6,9 +6,11 @@ class Out() :
   def close(self) :
     pass
   def image(self,img,title) :
-    pass
+    print("<IMG> " + img)
   def h1(self,h1) :
-    pass
+    print("<H1> " + h1)
+  def h2(self,h2) :
+    print(" <H2> " + h2)
 
 #--------------------------------------------------------------------------------------
 class OutputHtml(Out) :
