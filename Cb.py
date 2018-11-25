@@ -30,6 +30,26 @@ def graphAggregated(aggr,dgAggr,title,color='blue') :
   OUT.image(f,title)
 
 #--------------------------------------------------------------------------------------
+def graphBasics(aggr,dg,title,color='blue') :
+  plt.figure(figsize=(16,4))
+  fig, ax=plt.subplots(figsize=(16,4))
+  plt.ylim(0,5000)
+  fig.autofmt_xdate()
+  # use a more precise date string for the x axis locations in the
+  # toolbar
+  ax.fmt_xdata = mdates.DateFormatter('%Y-%m-%d')
+  ax.set_title('fig.autofmt_xdate fixes the labels')
+  ax.xaxis.set_major_formatter(mdates.DateFormatter(timeFormat))
+  dg.mean().plot(title=aggr + " " + title,rot=45,ax=ax,grid=True,color='black')
+  dg.quantile(0.5).plot(title=aggr + " " + title,rot=45,ax=ax,grid=True,color='blue')
+  dg.quantile(0.95).plot(title=aggr + " " + title,rot=45,ax=ax,grid=True,color='green')
+  f=title + aggr + '.svg'
+  plt.savefig(f)
+  plt.close()
+  OUT.image(f,title)
+
+
+#--------------------------------------------------------------------------------------
 def graphAggregatedBar(aggr,dgAggr,title,color='blue') :
   logging.warning(dgAggr)
   plt.figure(figsize=(10,8))
@@ -64,6 +84,7 @@ def myGraphs(datas,title,color='blue') :
   graphAggregated('Q50', dg.quantile(0.50), title, color)
   graphAggregated('Q95', dg.quantile(0.95), title, color)
   graphAggregated('Max', dg.max(), title, color)
+  graphBasics('Basic', dg, title, color)
 
 
 #--------------------------------------------------------------------------------------
