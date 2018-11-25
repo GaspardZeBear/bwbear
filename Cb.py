@@ -9,11 +9,11 @@ from DFFormatter import *
 
 percentiles=[.50,.95,.99]
 pd.options.display.float_format = '{:.0f}'.format
-timeGroupby='ts10m'
+timeGroupby='ts1m'
+timeFormat='%H-%M'
+
 #--------------------------------------------------------------------------------------
-def graphAggregatedCount(datas,title,color='blue') :
-  logging.warning('Entering graphAggregatedCount')
-  logging.warning(datas.head())
+def graphAggregated(aggr,dgAggr,title,color='blue') :
   plt.figure(figsize=(16,4))
   fig, ax=plt.subplots(figsize=(16,4))
 
@@ -22,64 +22,11 @@ def graphAggregatedCount(datas,title,color='blue') :
   # toolbar
   ax.fmt_xdata = mdates.DateFormatter('%Y-%m-%d')
   ax.set_title('fig.autofmt_xdate fixes the labels')
-  ax.xaxis.set_major_formatter(mdates.DateFormatter("%m-%d"))
-  datas.groupby(timeGroupby)['ResponseTime'].count().plot(title='Count ' + title,color=color,rot=45,ax=ax)
-  f=title + 'Count.png'
-  plt.savefig(f)
-  OUT.image(f,title) 
-
-#--------------------------------------------------------------------------------------
-def graphAggregatedMean(datas,title,color='blue') :
-  logging.warning('Entering graphAggregatedMean')
-  plt.figure(figsize=(16,4))
-  fig, ax=plt.subplots(figsize=(16,4))
-
-  fig.autofmt_xdate()
-  # use a more precise date string for the x axis locations in the
-  # toolbar
-  ax.fmt_xdata = mdates.DateFormatter('%Y-%m-%d')
-  ax.set_title('fig.autofmt_xdate fixes the labels')
-  ax.xaxis.set_major_formatter(mdates.DateFormatter("%m-%d"))
-  datas.groupby(timeGroupby)['ResponseTime'].mean().plot(title='Mean ' + title,color=color,rot=45,ax=ax)
-  f=title + 'Mean.png'
+  ax.xaxis.set_major_formatter(mdates.DateFormatter(timeFormat))
+  dgAggr.plot(title=aggr + " " + title,color=color,rot=45,ax=ax,grid=True)
+  f=title + aggr + '.png'
   plt.savefig(f)
   OUT.image(f,title)
-
-#--------------------------------------------------------------------------------------
-def graphAggregatedMax(datas,title,color='blue') :
-  logging.warning('Entering graphAggregatedMax')
-  plt.figure(figsize=(16,4))
-  fig, ax=plt.subplots(figsize=(16,4))
-
-  fig.autofmt_xdate()
-  # use a more precise date string for the x axis locations in the
-  # toolbar
-  ax.fmt_xdata = mdates.DateFormatter('%Y-%m-%d')
-  ax.set_title('fig.autofmt_xdate fixes the labels')
-  ax.xaxis.set_major_formatter(mdates.DateFormatter("%m-%d"))
-  datas.groupby(timeGroupby)['ResponseTime'].max().plot(title='Max ' + title,color=color,rot=45,ax=ax)
-  f=title + 'Max.png'
-  plt.savefig(f)
-  OUT.image(f,title)
-
-
-#--------------------------------------------------------------------------------------
-def graphAggregatedQuantile95(datas,title,color='blue') :
-  logging.warning('Entering graphAggregatedMean')
-  plt.figure(figsize=(16,4))
-  fig, ax=plt.subplots(figsize=(16,4))
-
-  fig.autofmt_xdate()
-  # use a more precise date string for the x axis locations in the
-  # toolbar
-  ax.fmt_xdata = mdates.DateFormatter('%Y-%m-%d')
-  ax.set_title('fig.autofmt_xdate fixes the labels')
-  ax.xaxis.set_major_formatter(mdates.DateFormatter("%m-%d"))
-  datas.groupby(timeGroupby)['ResponseTime'].quantile(0.95).plot(title='95 ' + title,color=color,rot=45,ax=ax)
-  f=title + '95.png'
-  plt.savefig(f)
-  OUT.image(f,title)
-
 
 
 #--------------------------------------------------------------------------------------
@@ -97,10 +44,12 @@ def myPlotBarResponseTime(datas,title,color='blue') :
 def myGraphs(datas,title,color='blue') :
   if datas.empty :
     return
-  graphAggregatedCount(datas, title, color)
-  graphAggregatedMean(datas, title, color)
-  graphAggregatedQuantile95(datas, title, color)
-  graphAggregatedMax(datas, title, color)
+  dg=datas.groupby(timeGroupby)['ResponseTime']
+  graphAggregated('Count', dg.count() ,title, color)
+  graphAggregated('Mean', dg.mean(), title, color)
+  graphAggregated('Q50', dg.quantile(0.50), title, color)
+  graphAggregated('Q95', dg.quantile(0.95), title, color)
+  graphAggregated('Max', dg.max(), title, color)
 
 
 #--------------------------------------------------------------------------------------
