@@ -26,7 +26,21 @@ def graphAggregated(aggr,dgAggr,title,color='blue') :
   dgAggr.plot(title=aggr + " " + title,color=color,rot=45,ax=ax,grid=True)
   f=title + aggr + '.png'
   plt.savefig(f)
+  plt.close()
   OUT.image(f,title)
+
+#--------------------------------------------------------------------------------------
+def graphAggregatedBar(aggr,dgAggr,title,color='blue') :
+  logging.warning(dgAggr)
+  plt.figure(figsize=(10,8))
+  fig, ax=plt.subplots(figsize=(16,4))
+
+  dgAggr.plot(kind='barh',title=aggr + " " + title,color=color,ax=ax,grid=True)
+  f=title + aggr + '.png'
+  plt.savefig(f)
+  plt.close()
+  OUT.image(f,title)
+
 
 
 #--------------------------------------------------------------------------------------
@@ -58,6 +72,8 @@ def groupByDescribe(datas,grps) :
     return
   dg=datas.groupby(grps)
   OUT.out("GroupBy " + str(grps) + " statistics" ,dg.describe(percentiles=percentiles))
+  #graphAggregatedBar('Count', dg.count(), str(grps), 'green')
+  #graphAggregatedBar('Mean', dg.mean(), str(grps), 'green')
 
 #--------------------------------------------------------------------------------------
 logging.basicConfig(level=logging.WARNING)
