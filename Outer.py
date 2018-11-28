@@ -44,6 +44,10 @@ class OutputHtml(Out) :
           background-color: lightgrey;
           text-decoration: underline overline;
     }
+    h3   {
+          color: black;
+    }
+
     p    {color: black;}
     table, th, td {
       border-collapse: collapse;
@@ -68,13 +72,13 @@ class OutputHtml(Out) :
     print("<h2>"+h2+"</h2>")
 
   def out(self,title,o) :
-    print("<h3>"+title+"</h2>")
+    print("<h3>"+title+"</h3>")
     if o.empty :
       return 
     print(o.to_html(border=1))
 
   def image(self,img,title) :
-    print("<h3>" + title + "</h3>")
+    print("<h4>" + title + "</h4>")
     print("<img src=\"" +img+ "\">")
 
 #--------------------------------------------------------------------------------------

@@ -75,11 +75,12 @@ class DFFormatter() :
       "Response Time [ms]" : "ResponseTime",
       "Start Time" : "StartTime"
     },inplace=True,axis=1)
-    rawdatas['PurePath']=rawdatas['PurePath'].map(self.coalesceUrl)
+    #rawdatas['PurePath']=rawdatas['PurePath'].map(self.coalesceUrl)
     rawdatas['StartTime']=pd.to_datetime(rawdatas['StartTime'],infer_datetime_format=True)
     rawdatas['PurePath']=rawdatas['PurePath'].map(self.renamePP)
     rawdatas['ts1m']=rawdatas.apply(lambda x: x['StartTime'].floor('1min'),axis=1)
     rawdatas['ts10m']=rawdatas.apply(lambda x: x['StartTime'].floor('10min'),axis=1)
+    rawdatas['Error']=rawdatas.apply(lambda x: 0 if x['ErrorState'] == 'OK' else 1,axis=1)
     self.out.out("File header and PP name reformatted",rawdatas.head())
     self.out.out("File statistics",rawdatas.describe(percentiles=DFFormatter.percentiles))
     self.df=rawdatas
