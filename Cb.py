@@ -31,19 +31,26 @@ def graphAggregated(aggr,dgAggr,title,color='blue') :
   OUT.image(f,aggr + " " +title)
 
 #--------------------------------------------------------------------------------------
-def graphBasics(aggr,dg,title,color='blue') :
+def graphBasics(aggr,dg,title) :
+  logging.warning("graphBasics aggr=" + aggr + " title=" + title)
   plt.figure(figsize=(16,4))
   fig, ax=plt.subplots(figsize=(16,4))
   #plt.ylim(0,YLIM)
   fig.autofmt_xdate()
   # use a more precise date string for the x axis locations in the
   # toolbar
+  logging.warning("graphBasics setting ax")
   ax.fmt_xdata = mdates.DateFormatter('%Y-%m-%d')
   ax.set_title('fig.autofmt_xdate fixes the labels')
   ax.xaxis.set_major_formatter(mdates.DateFormatter(timeFormat))
+  ax.set_ylabel('Time ms', color='black')
   dg.mean().plot(title=aggr + " mean " + title,rot=45,ax=ax,grid=True,color='black',label='Mean',linewidth=2)
   dg.quantile(0.5).plot(title=aggr + " median " + title,rot=45,ax=ax,grid=True,color='grey',label='Median',linestyle='--')
   dg.quantile(0.95).plot(title=aggr + " 0.95 " + title,rot=45,ax=ax,grid=True,color='lightgrey',label='Q95',linestyle='-.')
+  logging.warning("graphBasics setting axtwin")
+  axtwin=ax.twinx()
+  axtwin.set_ylabel('Count', color='blue')
+  dg.count().plot(ax=axtwin,color='blue')
   f=title + aggr + '.png'
   plt.savefig(f)
   plt.close()
@@ -80,12 +87,12 @@ def myGraphs(datas,title,color='blue') :
   if datas.empty :
     return
   dg=datas.groupby(timeGroupby)['ResponseTime']
-  graphAggregated('Count', dg.count() ,title, color)
-  graphAggregated('Mean', dg.mean(), title, color)
+  #graphAggregated('Count', dg.count() ,title, color)
+  #graphAggregated('Mean', dg.mean(), title, color)
   #graphAggregated('Q50', dg.quantile(0.50), title, color)
   #graphAggregated('Q95', dg.quantile(0.95), title, color)
-  graphAggregated('Max', dg.max(), title, color)
-  graphBasics('Mean, median -- , Q95 .. : ', dg, title, color)
+  graphBasics('Mean, median -- , Q95 .. : ', dg, title)
+  graphAggregated('Max', dg.max(), title, 'red')
 
 #--------------------------------------------------------------------------------------
 def myGraphsErrors(datas,title,color='red') :
@@ -129,19 +136,12 @@ groupByDescribe(dfOK,["PurePath"])
 myGraphs(dfOK,'All OK')
 
 
-#myPlotBarResponseTime(dfOK[ ( dfOK['PurePath'] == 'RemiseDetail') ] ,'RemiseDetail')
 myGraphs(dfOK[ ( dfOK['PurePath'] == 'RemiseDetail') ] ,'RemiseDetail')
-#myPlotBarResponseTime(dfOK[ ( dfOK['PurePath'] == 'RemiseTab') ] ,'RemiseTab')
 myGraphs(dfOK[ ( dfOK['PurePath'] == 'RemiseTab') ] ,'RemiseTab')
-#myPlotBarResponseTime(dfOK[ ( dfOK['PurePath'] == 'Result5') ] ,'Result5')
 myGraphs(dfOK[ ( dfOK['PurePath'] == 'Result5') ] ,'Result5')
-#myPlotBarResponseTime(dfOK[ ( dfOK['PurePath'] == 'SearchRemisesDate') ] ,'SearchRemisesDate')
 myGraphs(dfOK[ ( dfOK['PurePath'] == 'SearchRemisesDate') ] ,'SearchRemisesDate')
-#myPlotBarResponseTime(dfOK[ ( dfOK['PurePath'] == 'SearchTransactionsDate') ] ,'SearchTransactionsDate')
 myGraphs(dfOK[ ( dfOK['PurePath'] == 'SearchTransactionsDate') ] ,'SearchTransactionsDate')
-#myPlotBarResponseTime(dfOK[ ( dfOK['PurePath'] == 'SearchTransactionsDateScheme') ] ,'SearchTransactionsDateScheme')
 myGraphs(dfOK[ ( dfOK['PurePath'] == 'SearchTransactionsDateScheme') ] ,'SearchTransactionsDateScheme')
-#myPlotBarResponseTime(dfOK[ ( dfOK['PurePath'] == 'TransactionDetail') ] ,'TransactionDetail')
 myGraphs(dfOK[ ( dfOK['PurePath'] == 'TransactionDetail') ] ,'TransactionDetail')
 
 OUT.h2("Analyzing transactions with high response time")
