@@ -30,22 +30,23 @@ class OutputHtml(Out) :
           text-decoration: underline overline;
           counter-reset: h2counter;
     }
-    h2:before {
-        content: counter(h2counter) ".  "; 
+    h2::before {
+        content: "Section " counter(h2counter) ".  "; 
         counter-increment: h2counter;
-        counter-reset: h3counter;
-    }
-    h3:before {
-        content: counter(h2counter) "." counter(h3counter) ".  ";
-        counter-increment: h3counter;
     }
     h2   {
           color: black;
           background-color: lightgrey;
           text-decoration: underline overline;
+          counter-reset: h3counter;
+    }
+    h3::before {
+        content: counter(h2counter) "." counter(h3counter) ".  ";
     }
     h3   {
           color: black;
+          counter-increment: h3counter;
+          text-decoration: underline;
     }
 
     p    {color: black;}
@@ -78,7 +79,7 @@ class OutputHtml(Out) :
     print(o.to_html(border=1))
 
   def image(self,img,title) :
-    print("<h4>" + title + "</h4>")
+    print("<h3> Graph : " + title + "</h3>")
     print("<img src=\"" +img+ "\">")
 
 #--------------------------------------------------------------------------------------
