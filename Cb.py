@@ -19,8 +19,6 @@ def graphAggregated(aggr,dgAggr,title,color='blue') :
   fig, ax=plt.subplots(figsize=(16,4))
   #plt.ylim(0,YLIM)
   fig.autofmt_xdate()
-  # use a more precise date string for the x axis locations in the
-  # toolbar
   ax.fmt_xdata = mdates.DateFormatter('%Y-%m-%d')
   ax.set_title('fig.autofmt_xdate fixes the labels')
   ax.xaxis.set_major_formatter(mdates.DateFormatter(timeFormat))
@@ -31,30 +29,37 @@ def graphAggregated(aggr,dgAggr,title,color='blue') :
   OUT.image(f,aggr + " " +title)
 
 #--------------------------------------------------------------------------------------
-def graphBasics(aggr,dg,title) :
-  logging.warning("graphBasics aggr=" + aggr + " title=" + title)
+def graphBasicsNew(id,dgbase,dgList) :
+  logging.warning("graphBasics aggr=" + id)
   plt.figure(figsize=(16,4))
   fig, ax=plt.subplots(figsize=(16,4))
   #plt.ylim(0,YLIM)
   fig.autofmt_xdate()
-  # use a more precise date string for the x axis locations in the
-  # toolbar
   logging.warning("graphBasics setting ax")
   ax.fmt_xdata = mdates.DateFormatter('%Y-%m-%d')
   ax.set_title('fig.autofmt_xdate fixes the labels')
   ax.xaxis.set_major_formatter(mdates.DateFormatter(timeFormat))
   ax.set_ylabel('Time ms', color='black')
-  dg.mean().plot(title=aggr + " mean " + title,rot=45,ax=ax,grid=True,color='black',label='Mean',linewidth=2)
-  dg.quantile(0.5).plot(title=aggr + " median " + title,rot=45,ax=ax,grid=True,color='grey',label='Median',linestyle='--')
-  dg.quantile(0.95).plot(title=aggr + " 0.95 " + title,rot=45,ax=ax,grid=True,color='lightgrey',label='Q95',linestyle='-.')
+  title=id
+  dfall.plot(rot=45,ax=ax,grid=True,linewidth=0)
+  for dg in dgList : 
+    title=title +  dg['aggr']
+    #dfm=pd.merge(dfall,dg['dgaggr'].count(),on='StartTime',how='left')
+    #logging.warning(dfm)
+    dg['dgaggr'].plot(title=dg['aggr'],rot=45,ax=ax,grid=True,color=dg['color'],label=dg['aggr'],linewidth=1)
+    #dg['dgaggr'].plot(title=dg['aggr'],rot=45,ax=ax,grid=True,label=dg['aggr'],linewidth=1,style='o')
+    ax.set_ylim(ymin=0)
   logging.warning("graphBasics setting axtwin")
   axtwin=ax.twinx()
-  axtwin.set_ylabel('Count', color='blue')
-  dg.count().plot(ax=axtwin,color='blue')
-  f=title + aggr + '.png'
+  axtwin.set_ylabel('Count', color='lightgrey')
+  dgbase.count().plot(ax=axtwin,style='o')
+  dgbase.count().plot(ax=axtwin,color='lightgrey',linestyle='-.')
+  axtwin.set_ylim(ymin=0)
+  f=title.translate(None,' /.,:;\[]()-') + '.png'
   plt.savefig(f)
   plt.close()
   OUT.image(f,title)
+
 
 
 #--------------------------------------------------------------------------------------
@@ -87,12 +92,16 @@ def myGraphs(datas,title,color='blue') :
   if datas.empty :
     return
   dg=datas.groupby(timeGroupby)['ResponseTime']
-  #graphAggregated('Count', dg.count() ,title, color)
-  #graphAggregated('Mean', dg.mean(), title, color)
-  #graphAggregated('Q50', dg.quantile(0.50), title, color)
-  #graphAggregated('Q95', dg.quantile(0.95), title, color)
-  graphBasics('Mean, median -- , Q95 .. : ', dg, title)
-  graphAggregated('Max', dg.max(), title, 'red')
+  graphBasicsNew(title + 'Mean, Q50 .. : ', dg, [ 
+    { 'aggr' : 'Mean', 'dgaggr' : dg.mean(), 'color' : 'green'},
+    { 'aggr' : 'Q50', 'dgaggr' : dg.quantile(0.5), 'color' : 'grey'},
+    ])
+  graphBasicsNew(title + 'Max, Q99, Q95 .. : ', dg, [ 
+    { 'aggr' : 'Max', 'dgaggr' : dg.max(), 'color' : 'red'},
+    { 'aggr' : 'Q99', 'dgaggr' : dg.quantile(0.99), 'color' : 'black'},
+    { 'aggr' : 'Q95', 'dgaggr' : dg.quantile(0.95), 'color' : 'grey'},
+    ])
+  
 
 #--------------------------------------------------------------------------------------
 def myGraphsErrors(datas,title,color='red') :
@@ -109,8 +118,6 @@ def groupByDescribe(datas,grps) :
     return
   dg=datas.groupby(grps)
   OUT.out("GroupBy " + str(grps) + " statistics" ,dg.describe(percentiles=percentiles))
-  #graphAggregatedBar('Count', dg.count(), str(grps), 'green')
-  #graphAggregatedBar('Mean', dg.mean(), str(grps), 'green')
 
 #--------------------------------------------------------------------------------------
 logging.basicConfig(level=logging.WARNING)
@@ -133,16 +140,20 @@ OUT.h2("Analyzing transactions in status OK ")
 dfOK=rawDatas[ ( rawDatas['ErrorState'] == 'OK' ) ]
 groupByDescribe(dfOK,["Agent"])
 groupByDescribe(dfOK,["PurePath"])
+
+dfall=dfOK.groupby(timeGroupby)['StartTime'].count().apply(lambda x: 0)
+logging.warning(dfall)
 myGraphs(dfOK,'All OK')
-
-
-myGraphs(dfOK[ ( dfOK['PurePath'] == 'RemiseDetail') ] ,'RemiseDetail')
-myGraphs(dfOK[ ( dfOK['PurePath'] == 'RemiseTab') ] ,'RemiseTab')
-myGraphs(dfOK[ ( dfOK['PurePath'] == 'Result5') ] ,'Result5')
-myGraphs(dfOK[ ( dfOK['PurePath'] == 'SearchRemisesDate') ] ,'SearchRemisesDate')
-myGraphs(dfOK[ ( dfOK['PurePath'] == 'SearchTransactionsDate') ] ,'SearchTransactionsDate')
-myGraphs(dfOK[ ( dfOK['PurePath'] == 'SearchTransactionsDateScheme') ] ,'SearchTransactionsDateScheme')
-myGraphs(dfOK[ ( dfOK['PurePath'] == 'TransactionDetail') ] ,'TransactionDetail')
+for pp in dfOK['PurePath'].unique() :
+  myGraphs(dfOK[dfOK['PurePath'] == pp], pp)
+##myGraphs(dfOK[ ( dfOK['PurePath'] == '/cos/fr/rxp/view.exportxls')] , 'xxx')
+#myGraphs(dfOK[ ( dfOK['PurePath'] == 'RemiseDetail') ] ,'RemiseDetail')
+#myGraphs(dfOK[ ( dfOK['PurePath'] == 'RemiseTab') ] ,'RemiseTab')
+#myGraphs(dfOK[ ( dfOK['PurePath'] == 'Result5') ] ,'Result5')
+#myGraphs(dfOK[ ( dfOK['PurePath'] == 'SearchRemisesDate') ] ,'SearchRemisesDate')
+#myGraphs(dfOK[ ( dfOK['PurePath'] == 'SearchTransactionsDate') ] ,'SearchTransactionsDate')
+#myGraphs(dfOK[ ( dfOK['PurePath'] == 'SearchTransactionsDateScheme') ] ,'SearchTransactionsDateScheme')
+#myGraphs(dfOK[ ( dfOK['PurePath'] == 'TransactionDetail') ] ,'TransactionDetail')
 
 OUT.h2("Analyzing transactions with high response time")
 groupByDescribe(dfOK[ ( dfOK['ResponseTime'] > 5000 ) ],["PurePath"])
