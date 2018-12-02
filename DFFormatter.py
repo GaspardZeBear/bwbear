@@ -26,7 +26,11 @@ class DFFormatter() :
     self.file=f
     self.out=out
     self.df=None
-    self.getRawdatas()
+    pd.set_option("display.max_rows",None)
+    if self.file.endswith('.pan') :
+      self.getRawdatas(False)
+    else :
+      self.getRawdatas(True)
 
   def getDf(self) :
     return(self.df)
@@ -57,30 +61,32 @@ class DFFormatter() :
 
 
 #--------------------------------------------------------------------------------------
-  def getRawdatas(self) :
-    pd.set_option("display.max_rows",None)
+  def getRawdatas(self,wrangle=True) :
+    #pd.set_option("display.max_rows",None)
   #pd.set_option("display.max_rows",10)
     self.out.h1("Analyzing file " + self.file)
     rawdatas=pd.read_csv(self.file,sep=';')
     self.out.h2("Raw datas")
     self.out.out("File HEAD",rawdatas.head())
     self.out.out("File TAIL",rawdatas.tail())
-    rawdatas.drop (
-      ["Breakdown","Size","Top Findings","Duration [ms]"],
-      inplace=True,axis=1
-    )   
-    rawdatas.rename ({
-      "Error State" : "ErrorState",
-      "PurePath" : "PurePath",
-      "Response Time [ms]" : "ResponseTime",
-      "Start Time" : "StartTime"
-    },inplace=True,axis=1)
-    rawdatas['PurePath']=rawdatas['PurePath'].map(self.coalesceUrl)
-    rawdatas['StartTime']=pd.to_datetime(rawdatas['StartTime'],infer_datetime_format=True)
-    rawdatas['PurePath']=rawdatas['PurePath'].map(self.renamePP)
-    rawdatas['ts1m']=rawdatas.apply(lambda x: x['StartTime'].floor('1min'),axis=1)
-    rawdatas['ts10m']=rawdatas.apply(lambda x: x['StartTime'].floor('10min'),axis=1)
-    rawdatas['Error']=rawdatas.apply(lambda x: 0 if x['ErrorState'] == 'OK' else 1,axis=1)
-    self.out.out("File header and PP name reformatted",rawdatas.head())
+    if wrangle :
+      rawdatas.drop (
+        ["Breakdown","Size","Top Findings","Duration [ms]"],
+        inplace=True,axis=1
+      )   
+      rawdatas.rename ({
+        "Error State" : "ErrorState",
+        "PurePath" : "PurePath",
+        "Response Time [ms]" : "ResponseTime",
+        "Start Time" : "StartTime"
+      },inplace=True,axis=1)
+      rawdatas['PurePath']=rawdatas['PurePath'].map(self.coalesceUrl)
+      rawdatas['StartTime']=pd.to_datetime(rawdatas['StartTime'],infer_datetime_format=True)
+      rawdatas['PurePath']=rawdatas['PurePath'].map(self.renamePP)
+      rawdatas['ts1m']=rawdatas.apply(lambda x: x['StartTime'].floor('1min'),axis=1)
+      rawdatas['ts10m']=rawdatas.apply(lambda x: x['StartTime'].floor('10min'),axis=1)
+      rawdatas['Error']=rawdatas.apply(lambda x: 0 if x['ErrorState'] == 'OK' else 1,axis=1)
+      rawdatas.to_csv(self.file + '.pan',sep=';')
+      self.out.out("File header and PP name reformatted",rawdatas.head())
     self.out.out("File statistics",rawdatas.describe(percentiles=DFFormatter.percentiles))
     self.df=rawdatas
