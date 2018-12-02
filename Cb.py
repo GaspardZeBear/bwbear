@@ -11,13 +11,12 @@ percentiles=[.50,.95,.99]
 pd.options.display.float_format = '{:.0f}'.format
 timeGroupby='ts1m'
 timeFormat='%H-%M'
-YLIM=10000
+HIGHRESPONSETIME=20000 
 
 #--------------------------------------------------------------------------------------
 def graphAggregated(aggr,dgAggr,title,color='blue') :
   plt.figure(figsize=(16,4))
   fig, ax=plt.subplots(figsize=(16,4))
-  #plt.ylim(0,YLIM)
   fig.autofmt_xdate()
   ax.fmt_xdata = mdates.DateFormatter('%Y-%m-%d')
   ax.set_title('fig.autofmt_xdate fixes the labels')
@@ -33,7 +32,6 @@ def graphBasicsNew(id,dgbase,dgList) :
   logging.warning("graphBasics aggr=" + id)
   plt.figure(figsize=(16,4))
   fig, ax=plt.subplots(figsize=(16,4))
-  #plt.ylim(0,YLIM)
   fig.autofmt_xdate()
   logging.warning("graphBasics setting ax")
   ax.fmt_xdata = mdates.DateFormatter('%Y-%m-%d')
@@ -45,15 +43,26 @@ def graphBasicsNew(id,dgbase,dgList) :
   for dg in dgList : 
     title=title +  dg['aggr']
     #dfm=pd.merge(dfall,dg['dgaggr'].count(),on='StartTime',how='left')
-    #logging.warning(dfm)
+    #logging.warning(dg['dgaggr'])
     dg['dgaggr'].plot(title=dg['aggr'],rot=45,ax=ax,grid=True,color=dg['color'],label=dg['aggr'],linewidth=1)
     #dg['dgaggr'].plot(title=dg['aggr'],rot=45,ax=ax,grid=True,label=dg['aggr'],linewidth=1,style='o')
     ax.set_ylim(ymin=0)
   logging.warning("graphBasics setting axtwin")
   axtwin=ax.twinx()
   axtwin.set_ylabel('Count', color='lightgrey')
-  dgbase.count().plot(ax=axtwin,style='o')
-  dgbase.count().plot(ax=axtwin,color='lightgrey',linestyle='-.')
+  #logging.warning(dfall.info())
+  #logging.warning(pd.DataFrame(dgbase.count()).info())
+  #dfm=pd.merge_ordered(dfall,dg['dgaggr'].count(),fill_method='ffill',left_by='StartTime')
+  dfCount=dgbase.count().reset_index()
+  dfm=pd.merge_ordered(dfall,dfCount,left_on='ts1m',right_on='ts1m',how='outer')
+  dfm = dfm.set_index('ts1m')
+  dfm.drop('StartTime',axis=1,inplace=True)
+  dfm.fillna(value=0,inplace=True)
+  #dfm.plot(ax=axtwin,color='red',linestyle='-.')
+
+  #dgbase.count().plot(ax=axtwin,style='o')
+  #dgbase.count().plot(ax=axtwin,color='lightgrey',linestyle='-.')
+  dfm.plot(ax=axtwin,color='lightgrey',linestyle='-.')
   axtwin.set_ylim(ymin=0)
   f=title.translate(None,' /.,:;\[]()-') + '.png'
   plt.savefig(f)
@@ -141,12 +150,11 @@ dfOK=rawDatas[ ( rawDatas['ErrorState'] == 'OK' ) ]
 groupByDescribe(dfOK,["Agent"])
 groupByDescribe(dfOK,["PurePath"])
 
-dfall=dfOK.groupby(timeGroupby)['StartTime'].count().apply(lambda x: 0)
-logging.warning(dfall)
+dfall=pd.DataFrame(dfOK.groupby(timeGroupby)['StartTime'].count().apply(lambda x: 0))
 myGraphs(dfOK,'All OK')
 for pp in dfOK['PurePath'].unique() :
   myGraphs(dfOK[dfOK['PurePath'] == pp], pp)
-##myGraphs(dfOK[ ( dfOK['PurePath'] == '/cos/fr/rxp/view.exportxls')] , 'xxx')
+#myGraphs(dfOK[ ( dfOK['PurePath'] == '/cos/fr/rxp/view.exportxls')] , 'xxx')
 #myGraphs(dfOK[ ( dfOK['PurePath'] == 'RemiseDetail') ] ,'RemiseDetail')
 #myGraphs(dfOK[ ( dfOK['PurePath'] == 'RemiseTab') ] ,'RemiseTab')
 #myGraphs(dfOK[ ( dfOK['PurePath'] == 'Result5') ] ,'Result5')
@@ -157,7 +165,7 @@ for pp in dfOK['PurePath'].unique() :
 
 OUT.h2("Analyzing transactions with high response time")
 groupByDescribe(dfOK[ ( dfOK['ResponseTime'] > 5000 ) ],["PurePath"])
-OUT.out("Samples OK having high resp time ",dfOK[ ( dfOK['ResponseTime'] > 10000 ) ])
+OUT.out("Samples OK having high resp time ",dfOK[ ( dfOK['ResponseTime'] > HIGHRESPONSETIME ) ])
 
 OUT.h2("Detail of transactions in error state")
 OUT.out("Samples KO failed ",dfKO)
