@@ -118,7 +118,7 @@ def myGraphsErrors(datas,title,color='red') :
 def groupByDescribe(datas,grps) :
   if datas.empty :
     return
-  dg=datas.groupby(grps)
+  dg=datas.groupby(grps)['ResponseTime']
   OUT.out("GroupBy " + str(grps) + " statistics" ,dg.describe(percentiles=percentiles))
 
 #--------------------------------------------------------------------------------------

@@ -53,6 +53,7 @@ class OutputHtml(Out) :
     table, th, td {
       border-collapse: collapse;
       border: 1px solid black;
+      text-align: right;
     }
     </style>
     </head>
