@@ -42,7 +42,7 @@ def graphBasicsNew(id,dgbase,dgList) :
   dfall.plot(rot=45,ax=ax,grid=True,linewidth=0)
   for dg in dgList : 
     title=title +  dg['aggr']
-    dg['dgaggr'].plot(title=dg['aggr'],rot=45,ax=ax,grid=True,color=dg['color'],label=dg['aggr'],linewidth=1)
+    dg['dgaggr'].plot(title=dg['aggr'],rot=45,ax=ax,grid=True,color=dg['color'],legend=True,label=dg['aggr'],linewidth=1)
     ax.set_ylim(ymin=0)
   logging.warning("graphBasics setting axtwin")
   axtwin=ax.twinx()
@@ -53,9 +53,9 @@ def graphBasicsNew(id,dgbase,dgList) :
   dfm.drop('StartTime',axis=1,inplace=True)
   dfm.fillna(value=0,inplace=True)
 
-  dgbase.count().plot(ax=axtwin,style='o')
-  dgbase.count().plot(ax=axtwin,color='lightgrey',linestyle='-.')
-  dfm.plot(ax=axtwin,color='lightgrey',linestyle='--',label='Count')
+  #dgbase.count().plot(ax=axtwin,style='o')
+  #dgbase.count().plot(ax=axtwin,color='lightgrey',linestyle='-.')
+  dfm.plot(ax=axtwin,color='lightgrey',linestyle='--',legend=True,label='Count')
   axtwin.set_ylim(ymin=0)
   f=title.translate(None,' /.,:;\[]()-') + '.png'
   plt.savefig(f)
