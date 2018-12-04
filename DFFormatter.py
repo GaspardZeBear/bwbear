@@ -22,6 +22,19 @@ class DFFormatter() :
       "Search transactions on Date" : "SearchTransactionsDate",
       "Search transactions on Date & paymentScheme" : "SearchTransactionsDateScheme",
   }
+
+  COALESCE_DMP = [
+    ".png",
+    "/dmp/documents/liste:seedoc",
+    "/dmp/recapitulatif:consultdocument/",
+    "/mobilegateway/rest/Document/",
+    "/dmp/documents/liste.lignedeviecomponent:linktooltip",
+    "/dmp/creation/recherchepatientparcartevitale:redirecttodmpcreation",
+    "/dmp/creation/recherchepatientparcartevitale:redirecttodmpaccess/",
+    "/mespatients:opendmp/",
+    "/login;jsessionid",
+
+  ]
   def __init__(self,f,out) :
     self.file=f
     self.out=out
@@ -36,7 +49,7 @@ class DFFormatter() :
     return(self.df)
 
   #--------------------------------------------------------------------------------------
-  def coalesceUrl(self,u) :
+  def coalesceUrlCasino(self,u) :
     if ( "list.remittancegrid.show" in u ) :
       return("*remittancegrid.show")
     if ( "login.loginform;jsessionid" in u ) :
@@ -52,6 +65,36 @@ class DFFormatter() :
     if ( "merchantmanagement" in u ) :
       return("*merchantmanagement")
     return(u)
+
+  #--------------------------------------------------------------------------------------
+  def getInterestingPurepathsDmp(self) :
+    return([
+      "/dmp/creation/recherchepatientparcartevitale",
+      "/rechercherpatient",
+      "/dmp/documents/historiqueacces/raz",
+      "/dmp/documents/consultationdocument",
+      "/dmp/creation/donneesadministratives.formcreation",
+      "/dmp/gestiondmp/telechargementtotal.telechargementform",
+      "/si-dmp-server/v1/services/repository",
+      "/si-dmp-server/v1/services//repository",
+      "/si-dmp-server/v1/services/habilitations",
+      "/si-dmp-server/v1/services/registry",
+      "/si-dmp-server/v1/services/patients",
+      "/si-dmp-server/v2/services/patients",
+      "/si-dmp-server/v2/services/patientCertif"
+      ])
+
+  #--------------------------------------------------------------------------------------
+  def getInterestingPurepaths(self) :
+    return(self.getInterestingPurepathsDmp())
+
+  #--------------------------------------------------------------------------------------
+  def coalesceUrl(self,u) :
+    for pat in DFFormatter.COALESCE_DMP :
+      if pat in u :
+        return("*" + pat)
+    return(u)
+
 
 #--------------------------------------------------------------------------------------
   def renamePP(self,u) :

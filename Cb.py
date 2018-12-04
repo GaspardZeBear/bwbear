@@ -94,15 +94,16 @@ def myGraphs(datas,title,color='blue') :
   if datas.empty :
     return
   dg=datas.groupby(timeGroupby)['ResponseTime']
-  graphBasicsNew(title + 'Mean, Q50 .. : ', dg, [ 
+  graphBasicsNew(title + 'Max Mean, Q50 .. : ', dg, [ 
+    { 'aggr' : 'Max', 'dgaggr' : dg.max(), 'color' : 'red'},
     { 'aggr' : 'Mean', 'dgaggr' : dg.mean(), 'color' : 'green'},
     { 'aggr' : 'Q50', 'dgaggr' : dg.quantile(0.5), 'color' : 'grey'},
     ])
-  graphBasicsNew(title + 'Max, Q99, Q95 .. : ', dg, [ 
-    { 'aggr' : 'Max', 'dgaggr' : dg.max(), 'color' : 'red'},
-    { 'aggr' : 'Q99', 'dgaggr' : dg.quantile(0.99), 'color' : 'black'},
-    { 'aggr' : 'Q95', 'dgaggr' : dg.quantile(0.95), 'color' : 'grey'},
-    ])
+  #graphBasicsNew(title + 'Max, Q99, Q95 .. : ', dg, [ 
+  #  { 'aggr' : 'Max', 'dgaggr' : dg.max(), 'color' : 'red'},
+  #  { 'aggr' : 'Q99', 'dgaggr' : dg.quantile(0.99), 'color' : 'black'},
+  #  { 'aggr' : 'Q95', 'dgaggr' : dg.quantile(0.95), 'color' : 'grey'},
+  #  ])
   
 
 #--------------------------------------------------------------------------------------
@@ -126,7 +127,8 @@ logging.basicConfig(level=logging.WARNING)
 OUT=OutputHtml()
 #OUT=OutputTty()
 OUT.open()
-rawDatas=DFFormatter(sys.argv[1],OUT).getDf()
+DFF=DFFormatter(sys.argv[1],OUT)
+rawDatas=DFF.getDf()
 logging.debug(rawDatas)
 rawDatas=rawDatas[rawDatas.PurePath.str.contains("assets")==False]
 
@@ -145,7 +147,8 @@ groupByDescribe(dfOK,["PurePath"])
 
 dfall=pd.DataFrame(dfOK.groupby(timeGroupby)['StartTime'].count().apply(lambda x: 0))
 myGraphs(dfOK,'All OK')
-for pp in dfOK['PurePath'].unique() :
+#for pp in dfOK['PurePath'].unique() :
+for pp in DFF.getInterestingPurepaths() :
   myGraphs(dfOK[dfOK['PurePath'] == pp], pp)
 #myGraphs(dfOK[ ( dfOK['PurePath'] == '/cos/fr/rxp/view.exportxls')] , 'xxx')
 #myGraphs(dfOK[ ( dfOK['PurePath'] == 'RemiseDetail') ] ,'RemiseDetail')
@@ -156,8 +159,8 @@ for pp in dfOK['PurePath'].unique() :
 #myGraphs(dfOK[ ( dfOK['PurePath'] == 'SearchTransactionsDateScheme') ] ,'SearchTransactionsDateScheme')
 #myGraphs(dfOK[ ( dfOK['PurePath'] == 'TransactionDetail') ] ,'TransactionDetail')
 
-OUT.h2("Analyzing transactions with high response time")
-groupByDescribe(dfOK[ ( dfOK['ResponseTime'] > 5000 ) ],["PurePath"])
+OUT.h2("Analyzing transactions with response time > " + str(HIGHRESPONSETIME) )
+groupByDescribe(dfOK[ ( dfOK['ResponseTime'] > HIGHRESPONSETIME ) ],["PurePath"])
 OUT.out("Samples OK having high resp time ",dfOK[ ( dfOK['ResponseTime'] > HIGHRESPONSETIME ) ])
 
 OUT.h2("Detail of transactions in error state")
