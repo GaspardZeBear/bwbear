@@ -24,18 +24,7 @@ class DFFormatter() :
       "Search transactions on Date & paymentScheme" : "SearchTransactionsDateScheme",
   }
 
-  COALESCE_DMP = [
-    ".png",
-    "/dmp/documents/liste:seedoc",
-    "/dmp/recapitulatif:consultdocument/",
-    "/mobilegateway/rest/Document/",
-    "/dmp/documents/liste.lignedeviecomponent:linktooltip",
-    "/dmp/creation/recherchepatientparcartevitale:redirecttodmpcreation",
-    "/dmp/creation/recherchepatientparcartevitale:redirecttodmpaccess/",
-    "/mespatients:opendmp/",
-    "/login;jsessionid",
-
-  ]
+  #--------------------------------------------------------------------------------------
   def __init__(self,f,fconf,out) :
     self.file=f
     self.fconf=fconf
@@ -43,6 +32,7 @@ class DFFormatter() :
       json_data = json.load(j)
       self.coalesce=json_data['COALESCE']
       self.focus=json_data['FOCUS']
+      self.ppalias=json_data['PPALIAS']
       print(json_data)
 
     self.out=out
@@ -53,74 +43,31 @@ class DFFormatter() :
     else :
       self.getRawdatas(True)
 
+  #--------------------------------------------------------------------------------------
   def getDf(self) :
     return(self.df)
 
   #--------------------------------------------------------------------------------------
-  def coalesceUrlCasino(self,u) :
-    if ( "list.remittancegrid.show" in u ) :
-      return("*remittancegrid.show")
-    if ( "login.loginform;jsessionid" in u ) :
-      return("*login.loginform;jsessionid")
-    if ( "list.transactiongrid" in u ) :
-      return("*list.transactiongrid")
-    if ( "transaction" in u ) :
-      return("*transaction")
-    if ( "remittance" in u ) :
-      return("*remittance")
-    if ( "generator" in u ) :
-      return("*generator")
-    if ( "merchantmanagement" in u ) :
-      return("*merchantmanagement")
-    return(u)
-
-  #--------------------------------------------------------------------------------------
-  def getInterestingPurepathsDmp(self) :
-    return([
-      "/dmp/creation/recherchepatientparcartevitale",
-      "/rechercherpatient",
-      "/dmp/documents/historiqueacces/raz",
-      "/dmp/documents/consultationdocument",
-      "/dmp/creation/donneesadministratives.formcreation",
-      "/dmp/gestiondmp/telechargementtotal.telechargementform",
-      "/si-dmp-server/v1/services/repository",
-      "/si-dmp-server/v1/services//repository",
-      "/si-dmp-server/v1/services/habilitations",
-      "/si-dmp-server/v1/services/registry",
-      "/si-dmp-server/v1/services/patients",
-      "/si-dmp-server/v2/services/patients",
-      "/si-dmp-server/v2/services/patientCertif"
-      ])
-
-  #--------------------------------------------------------------------------------------
   def getInterestingPurepaths(self) :
-    #return(self.getInterestingPurepathsDmp())
     return(self.focus)
 
   #--------------------------------------------------------------------------------------
-  def XcoalesceUrl(self,u) :
-    for pat in DFFormatter.COALESCE_DMP :
-      if pat in u :
-        return("*" + pat)
-    return(u)
-
-  #--------------------------------------------------------------------------------------
   def coalesceUrl(self,u) :
-    for pat in self.coalesce :
-      if pat['pattern'] in u :
-        logging.warning(u + " " + pat['pattern'])
-        if len(pat['to']) > 0 :
-          return(pat['to'])
+    for pat in self.coalesce.keys() :
+      if pat in u :
+        logging.warning(u + " " + pat)
+        if len(self.coalesce[pat] ) > 0 :
+          return(self.coalesce[pat])
         else :
-          return("*"+pat['pattern'])
+          return("*"+self.coalesce[pat] )
     return(u)
 
 
 
 #--------------------------------------------------------------------------------------
   def renamePP(self,u) :
-    if ( u in DFFormatter.PP ) :
-      return(DFFormatter.PP[u])
+    if ( u in self.ppalias ) :
+      return(self.ppalias[u])
     return(u)
 
 
