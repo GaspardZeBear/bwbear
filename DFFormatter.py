@@ -4,6 +4,7 @@ import matplotlib.dates as mdates
 import pandas as pd
 import numpy as np
 import logging
+import json
 from Outer import *
 
 
@@ -35,8 +36,15 @@ class DFFormatter() :
     "/login;jsessionid",
 
   ]
-  def __init__(self,f,out) :
+  def __init__(self,f,fconf,out) :
     self.file=f
+    self.fconf=fconf
+    with open('DMP.json', 'r') as j:
+      json_data = json.load(j)
+      self.coalesce=json_data['COALESCE']
+      self.focus=json_data['FOCUS']
+      print(json_data)
+
     self.out=out
     self.df=None
     pd.set_option("display.max_rows",None)
@@ -86,14 +94,27 @@ class DFFormatter() :
 
   #--------------------------------------------------------------------------------------
   def getInterestingPurepaths(self) :
-    return(self.getInterestingPurepathsDmp())
+    #return(self.getInterestingPurepathsDmp())
+    return(self.focus)
 
   #--------------------------------------------------------------------------------------
-  def coalesceUrl(self,u) :
+  def XcoalesceUrl(self,u) :
     for pat in DFFormatter.COALESCE_DMP :
       if pat in u :
         return("*" + pat)
     return(u)
+
+  #--------------------------------------------------------------------------------------
+  def coalesceUrl(self,u) :
+    for pat in self.coalesce :
+      if pat['pattern'] in u :
+        logging.warning(u + " " + pat['pattern'])
+        if len(pat['to']) > 0 :
+          return(pat['to'])
+        else :
+          return("*"+pat['pattern'])
+    return(u)
+
 
 
 #--------------------------------------------------------------------------------------

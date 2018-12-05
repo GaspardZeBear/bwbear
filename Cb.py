@@ -57,7 +57,8 @@ def graphBasicsNew(id,dgbase,dgList) :
   #dgbase.count().plot(ax=axtwin,color='lightgrey',linestyle='-.')
   dfm.plot(ax=axtwin,color='lightgrey',linestyle='--',legend=True,label='Count')
   axtwin.set_ylim(ymin=0)
-  f=title.translate(None,' /.,:;\[]()-') + '.png'
+  logging.warning("title " + title)
+  f=str(title).translate(None,' /.,:;\[]()-') + '.png'
   plt.savefig(f)
   plt.close()
   OUT.image(f,title)
@@ -91,6 +92,7 @@ def myPlotBarResponseTime(datas,title,color='blue') :
 
 #--------------------------------------------------------------------------------------
 def myGraphs(datas,title,color='blue') :
+  logging.warning("graphing " + title)
   if datas.empty :
     return
   dg=datas.groupby(timeGroupby)['ResponseTime']
@@ -127,7 +129,7 @@ logging.basicConfig(level=logging.WARNING)
 OUT=OutputHtml()
 #OUT=OutputTty()
 OUT.open()
-DFF=DFFormatter(sys.argv[1],OUT)
+DFF=DFFormatter(sys.argv[1],sys.argv[2],OUT)
 rawDatas=DFF.getDf()
 logging.debug(rawDatas)
 rawDatas=rawDatas[rawDatas.PurePath.str.contains("assets")==False]
@@ -147,6 +149,10 @@ groupByDescribe(dfOK,["PurePath"])
 
 dfall=pd.DataFrame(dfOK.groupby(timeGroupby)['StartTime'].count().apply(lambda x: 0))
 myGraphs(dfOK,'All OK')
+
+OUT.h2("Analyzing selected transaction")
+#groupByDescribe(dfOK,DFF.getInterestingPurepaths())
+
 #for pp in dfOK['PurePath'].unique() :
 for pp in DFF.getInterestingPurepaths() :
   myGraphs(dfOK[dfOK['PurePath'] == pp], pp)
