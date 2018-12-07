@@ -96,15 +96,14 @@ def myGraphs(datas,title,color='blue') :
   if datas.empty :
     return
   dg=datas.groupby(timeGroupby)['ResponseTime']
-  graphBasicsNew(title + 'Max Mean, Q50 .. : ', dg, [ 
+  graphBasicsNew(title + 'Mean, Max : ', dg, [ 
     { 'aggr' : 'Max', 'dgaggr' : dg.max(), 'color' : 'red'},
     { 'aggr' : 'Mean', 'dgaggr' : dg.mean(), 'color' : 'green'},
-    { 'aggr' : 'Q50', 'dgaggr' : dg.quantile(0.5), 'color' : 'grey'},
     ])
-  #graphBasicsNew(title + 'Max, Q99, Q95 .. : ', dg, [ 
-  #  { 'aggr' : 'Max', 'dgaggr' : dg.max(), 'color' : 'red'},
+  #graphBasicsNew(title + 'Quantiles : ', dg, [ 
   #  { 'aggr' : 'Q99', 'dgaggr' : dg.quantile(0.99), 'color' : 'black'},
   #  { 'aggr' : 'Q95', 'dgaggr' : dg.quantile(0.95), 'color' : 'grey'},
+  #  { 'aggr' : 'Q50', 'dgaggr' : dg.quantile(0.5), 'color' : 'lightgrey'},
   #  ])
   
 
@@ -119,15 +118,29 @@ def myGraphsErrors(datas,title,color='red') :
 
 #--------------------------------------------------------------------------------------
 def groupByDescribe(datas,grps) :
+  logging.warning("groupByDescribe " + str(grps))
   if datas.empty :
     return
   dg=datas.groupby(grps)['ResponseTime']
   OUT.out("GroupBy " + str(grps) + " statistics" ,dg.describe(percentiles=percentiles))
 
 #--------------------------------------------------------------------------------------
-logging.basicConfig(level=logging.WARNING)
+def autofocus(datas) :
+  dg=datas.groupby('PurePath')
+  logging.warning("Full dg")
+  logging.warning(dg.describe())
+  logging.warning("Filtered dg")
+  dg1=dg.filter(lambda x: x['ResponseTime'].mean() > 1000)
+  logging.warning("dg1 dg")
+  logging.warning(dg1.describe())
+  sys.exit()
+
+
+#--------------------------------------------------------------------------------------
+logging.basicConfig(format="%(asctime)s f=%(funcName)s %(levelname)s %(message)s", level=logging.WARNING)
+
 OUT=OutputHtml()
-#OUT=OutputTty()
+OUT=OutputTty()
 OUT.open()
 DFF=DFFormatter(sys.argv[1],sys.argv[2],OUT)
 rawDatas=DFF.getDf()
@@ -146,24 +159,21 @@ OUT.h2("Analyzing transactions in status OK ")
 dfOK=rawDatas[ ( rawDatas['ErrorState'] == 'OK' ) ]
 groupByDescribe(dfOK,["Agent"])
 groupByDescribe(dfOK,["PurePath"])
+dfFocus=dfOK[ dfOK['PurePath'].isin( ["/dmp/creation/recherchepatientparcartevitale","/si-dmp-server/v1/services//repository","/rechercherpatient"])]
+autofocus(dfOK)
 
 dfall=pd.DataFrame(dfOK.groupby(timeGroupby)['StartTime'].count().apply(lambda x: 0))
 myGraphs(dfOK,'All OK')
 
 OUT.h2("Analyzing selected transaction")
-#groupByDescribe(dfOK,DFF.getInterestingPurepaths())
+#dfFocus=dfOK[ dfOK['PurePath'].isin( DFF.getInterestingPurepaths()) ]
+#groupByDescribe(dfOK,["PurePath"])
+#groupByDescribe(dfOK,["PurePath"])
+groupByDescribe(dfFocus,["PurePath"])
 
 #for pp in dfOK['PurePath'].unique() :
 for pp in DFF.getInterestingPurepaths() :
   myGraphs(dfOK[dfOK['PurePath'] == pp], pp)
-#myGraphs(dfOK[ ( dfOK['PurePath'] == '/cos/fr/rxp/view.exportxls')] , 'xxx')
-#myGraphs(dfOK[ ( dfOK['PurePath'] == 'RemiseDetail') ] ,'RemiseDetail')
-#myGraphs(dfOK[ ( dfOK['PurePath'] == 'RemiseTab') ] ,'RemiseTab')
-#myGraphs(dfOK[ ( dfOK['PurePath'] == 'Result5') ] ,'Result5')
-#myGraphs(dfOK[ ( dfOK['PurePath'] == 'SearchRemisesDate') ] ,'SearchRemisesDate')
-#myGraphs(dfOK[ ( dfOK['PurePath'] == 'SearchTransactionsDate') ] ,'SearchTransactionsDate')
-#myGraphs(dfOK[ ( dfOK['PurePath'] == 'SearchTransactionsDateScheme') ] ,'SearchTransactionsDateScheme')
-#myGraphs(dfOK[ ( dfOK['PurePath'] == 'TransactionDetail') ] ,'TransactionDetail')
 
 OUT.h2("Analyzing transactions with response time > " + str(HIGHRESPONSETIME) )
 groupByDescribe(dfOK[ ( dfOK['ResponseTime'] > HIGHRESPONSETIME ) ],["PurePath"])

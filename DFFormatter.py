@@ -33,7 +33,9 @@ class DFFormatter() :
       self.coalesce=json_data['COALESCE']
       self.focus=json_data['FOCUS']
       self.ppalias=json_data['PPALIAS']
-      print(json_data)
+      self.dropcolumns=json_data['DROPCOLUMNS']
+      self.renamecolumns=json_data['RENAMECOLUMNS']
+      logging.warning(json_data)
 
     self.out=out
     self.df=None
@@ -55,7 +57,7 @@ class DFFormatter() :
   def coalesceUrl(self,u) :
     for pat in self.coalesce.keys() :
       if pat in u :
-        logging.warning(u + " " + pat)
+        #logging.warning(u + " " + pat)
         if len(self.coalesce[pat] ) > 0 :
           return(self.coalesce[pat])
         else :
@@ -81,16 +83,16 @@ class DFFormatter() :
     self.out.out("File HEAD",rawdatas.head())
     
     if wrangle :
+      logging.warning("Wrangling file " + self.file)
+      logging.warning("dropcolumns " + str(self.dropcolumns))
       rawdatas.drop (
-        ["Breakdown","Size","Top Findings","Duration [ms]"],
+        self.dropcolumns,
         inplace=True,axis=1
       )   
-      rawdatas.rename ({
-        "Error State" : "ErrorState",
-        "PurePath" : "PurePath",
-        "Response Time [ms]" : "ResponseTime",
-        "Start Time" : "StartTime"
-      },inplace=True,axis=1)
+      logging.warning("renamecolumns " + str(self.renamecolumns))
+      rawdatas.rename (self.renamecolumns,
+        inplace=True,axis=1)
+      logging.warning(rawdatas.head())
       rawdatas['PurePath']=rawdatas['PurePath'].map(self.coalesceUrl)
       rawdatas['StartTime']=pd.to_datetime(rawdatas['StartTime'],infer_datetime_format=True)
       rawdatas['PurePath']=rawdatas['PurePath'].map(self.renamePP)
