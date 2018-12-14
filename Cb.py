@@ -186,14 +186,16 @@ def runIt(OUT) :
 @click.option('--formatter', prompt='formatter')
 @click.option('--output', default='html', type=click.Choice(['html', 'tty']))
 @click.option('--pandas', prompt='pandas')
+@click.option('--verbose', is_flag=True, default=False)
 
-def go(OUT) :
+def launch() :
   p=Param()
   p.set('datafile',datafile)
   p.set('output',output)
-  p.set('formatter',formatter)
+  p.set('formatfile',formatfile)
   p.set('pandas',pandas)
-
+  p.set('verbose',verbose)
+  p.processParams()
 
 #--------------------------------------------------------------------------------------
 if __name__ == '__main__':
@@ -201,5 +203,5 @@ if __name__ == '__main__':
   OUT=OutputHtml()
   OUT=OutputTty()
   OUT.open()
-  go()
+  launch()
 
