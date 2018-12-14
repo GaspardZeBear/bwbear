@@ -6,6 +6,8 @@ import numpy as np
 import logging
 from Outer import *
 from DFFormatter import *
+from Param import *
+import click
 
 percentiles=[.50,.95,.99]
 pd.options.display.float_format = '{:.0f}'.format
@@ -135,9 +137,8 @@ def autofocus(datas) :
   logging.warning(dg1.describe())
   sys.exit()
 
-
 #--------------------------------------------------------------------------------------
-def go(OUT) :
+def runIt(OUT) :
   DFF=DFFormatter(sys.argv[1],sys.argv[2],OUT)
   rawDatas=DFF.getDf()
   logging.debug(rawDatas)
@@ -179,10 +180,26 @@ def go(OUT) :
   OUT.out("Samples KO failed ",dfKO)
   #OUT.out("Rawdatas detail",dfOK)
 
+#--------------------------------------------------------------------------------------
+@click.command()
+@click.option('--datafile', help='datafile')
+@click.option('--formatter', prompt='formatter')
+@click.option('--output', default='html', type=click.Choice(['html', 'tty']))
+@click.option('--pandas', prompt='pandas')
+
+def go(OUT) :
+  p=Param()
+  p.set('datafile',datafile)
+  p.set('output',output)
+  p.set('formatter',formatter)
+  p.set('pandas',pandas)
+
+
+#--------------------------------------------------------------------------------------
 if __name__ == '__main__':
-    logging.basicConfig(format="%(asctime)s f=%(funcName)s %(levelname)s %(message)s", level=logging.WARNING)
-    OUT=OutputHtml()
-    OUT=OutputTty()
-    OUT.open()
-    go(OUT)
+  logging.basicConfig(format="%(asctime)s f=%(funcName)s %(levelname)s %(message)s", level=logging.WARNING)
+  OUT=OutputHtml()
+  OUT=OutputTty()
+  OUT.open()
+  go()
 
