@@ -137,49 +137,52 @@ def autofocus(datas) :
 
 
 #--------------------------------------------------------------------------------------
-logging.basicConfig(format="%(asctime)s f=%(funcName)s %(levelname)s %(message)s", level=logging.WARNING)
+def go(OUT) :
+  DFF=DFFormatter(sys.argv[1],sys.argv[2],OUT)
+  rawDatas=DFF.getDf()
+  logging.debug(rawDatas)
+  rawDatas=rawDatas[rawDatas.PurePath.str.contains("assets")==False]
 
-OUT=OutputHtml()
-OUT=OutputTty()
-OUT.open()
-DFF=DFFormatter(sys.argv[1],sys.argv[2],OUT)
-rawDatas=DFF.getDf()
-logging.debug(rawDatas)
-rawDatas=rawDatas[rawDatas.PurePath.str.contains("assets")==False]
+  OUT.h2("Analyzing transaction in Error ")
+  myGraphsErrors(rawDatas,'All Errors over time')
+  groupByDescribe(rawDatas,["ErrorState"])
+  dfKO=rawDatas[ ( rawDatas['ErrorState'] != 'OK') ]
+  groupByDescribe(dfKO,["Agent"])
+  groupByDescribe(dfKO,["PurePath"])
+  #myGraphs(dfKO,'All Errors')
 
-OUT.h2("Analyzing transaction in Error ")
-myGraphsErrors(rawDatas,'All Errors over time')
-groupByDescribe(rawDatas,["ErrorState"])
-dfKO=rawDatas[ ( rawDatas['ErrorState'] != 'OK') ]
-groupByDescribe(dfKO,["Agent"])
-groupByDescribe(dfKO,["PurePath"])
-#myGraphs(dfKO,'All Errors')
+  OUT.h2("Analyzing transactions in status OK ")
+  dfOK=rawDatas[ ( rawDatas['ErrorState'] == 'OK' ) ]
+  groupByDescribe(dfOK,["Agent"])
+  groupByDescribe(dfOK,["PurePath"])
+  dfFocus=dfOK[ dfOK['PurePath'].isin( ["/dmp/creation/recherchepatientparcartevitale","/si-dmp-server/v1/services//repository","/rechercherpatient"])]
+  autofocus(dfOK)
 
-OUT.h2("Analyzing transactions in status OK ")
-dfOK=rawDatas[ ( rawDatas['ErrorState'] == 'OK' ) ]
-groupByDescribe(dfOK,["Agent"])
-groupByDescribe(dfOK,["PurePath"])
-dfFocus=dfOK[ dfOK['PurePath'].isin( ["/dmp/creation/recherchepatientparcartevitale","/si-dmp-server/v1/services//repository","/rechercherpatient"])]
-autofocus(dfOK)
+  dfall=pd.DataFrame(dfOK.groupby(timeGroupby)['StartTime'].count().apply(lambda x: 0))
+  myGraphs(dfOK,'All OK')
 
-dfall=pd.DataFrame(dfOK.groupby(timeGroupby)['StartTime'].count().apply(lambda x: 0))
-myGraphs(dfOK,'All OK')
+  OUT.h2("Analyzing selected transaction")
+  #dfFocus=dfOK[ dfOK['PurePath'].isin( DFF.getInterestingPurepaths()) ]
+  #groupByDescribe(dfOK,["PurePath"])
+  #groupByDescribe(dfOK,["PurePath"])
+  groupByDescribe(dfFocus,["PurePath"])
 
-OUT.h2("Analyzing selected transaction")
-#dfFocus=dfOK[ dfOK['PurePath'].isin( DFF.getInterestingPurepaths()) ]
-#groupByDescribe(dfOK,["PurePath"])
-#groupByDescribe(dfOK,["PurePath"])
-groupByDescribe(dfFocus,["PurePath"])
+  #for pp in dfOK['PurePath'].unique() :
+  for pp in DFF.getInterestingPurepaths() :
+    myGraphs(dfOK[dfOK['PurePath'] == pp], pp)
 
-#for pp in dfOK['PurePath'].unique() :
-for pp in DFF.getInterestingPurepaths() :
-  myGraphs(dfOK[dfOK['PurePath'] == pp], pp)
+  OUT.h2("Analyzing transactions with response time > " + str(HIGHRESPONSETIME) )
+  groupByDescribe(dfOK[ ( dfOK['ResponseTime'] > HIGHRESPONSETIME ) ],["PurePath"])
+  OUT.out("Samples OK having high resp time ",dfOK[ ( dfOK['ResponseTime'] > HIGHRESPONSETIME ) ])
 
-OUT.h2("Analyzing transactions with response time > " + str(HIGHRESPONSETIME) )
-groupByDescribe(dfOK[ ( dfOK['ResponseTime'] > HIGHRESPONSETIME ) ],["PurePath"])
-OUT.out("Samples OK having high resp time ",dfOK[ ( dfOK['ResponseTime'] > HIGHRESPONSETIME ) ])
+  OUT.h2("Detail of transactions in error state")
+  OUT.out("Samples KO failed ",dfKO)
+  #OUT.out("Rawdatas detail",dfOK)
 
-OUT.h2("Detail of transactions in error state")
-OUT.out("Samples KO failed ",dfKO)
-#OUT.out("Rawdatas detail",dfOK)
+if __name__ == '__main__':
+    logging.basicConfig(format="%(asctime)s f=%(funcName)s %(levelname)s %(message)s", level=logging.WARNING)
+    OUT=OutputHtml()
+    OUT=OutputTty()
+    OUT.open()
+    go(OUT)
 
