@@ -7,24 +7,33 @@ import click
 #--------------------------------------------------------------------------------------
 @click.command()
 @click.option('--datafile', help='datafile')
-@click.option('--formatfile', prompt='formatfile')
-@click.option('--output', default='html', type=click.Choice(['html', 'tty']))
-@click.option('--timeGroupby', default='ts1m')
-@click.option('--timeFormat', default='%H-%M')
-@click.option('--highResponseTime', default=5000)
-#@click.option('--pandas', prompt='pandas')
+@click.option('--formatfile',help='formatfile')
+@click.option('--output', default='html')
+@click.option('--timegroupby', default='ts1m')
+@click.option('--timeformat', default='%H-%M')
+@click.option('--highresponsetime', default=5000)
+@click.option('--pandas', default='Pandas')
 @click.option('--verbose', is_flag=True, default=False)
 
-def launch() :
+def launch(
+  datafile,
+  formatfile,
+  output,
+  timegroupby,
+  timeformat,
+  highresponsetime,
+  pandas,
+  verbose
+  ) :
   p=Param()
   p.set('datafile',datafile)
   p.set('output',output)
   p.set('formatfile',formatfile)
   p.set('pandas',pandas)
   p.set('verbose',verbose)
-  p.set('highResponseTime',highResponseTime)
-  p.set('timeFormat',timeFormat)
-  p.set('timeGroupby',timeGroupby)
+  p.set('highResponseTime',highresponsetime)
+  p.set('timeFormat',timeformat)
+  p.set('timeGroupby',timegroupby)
   pp=PandasProcessor(p)
 
 #--------------------------------------------------------------------------------------

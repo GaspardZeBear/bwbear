@@ -24,12 +24,12 @@ class Param() :
       logging.basicConfig(format="%(asctime)s f=%(funcName)s %(levelname)s %(message)s", level=logging.WARNING)
     if 'output' in self.p :
       if self.p['output'] ==  'html' :
-        self.out=OutputHtml()
+        self.p['out']=OutputHtml()
       else :
-        self.out=OutputTTy()
+        self.p['out']=OutputTty()
     else :
-        self.out=OutputTTy()
-    self.out.open()
+        self.p['out']=OutputTty()
+    self.p['out'].open()
     if 'timeGroupby' not in self.p :
       self.p['timeGroupby']='ts1m'
     if 'timeFormat' not in self.p :

@@ -28,7 +28,7 @@ class DFFormatter() :
   def __init__(self,f,fconf,out) :
     self.file=f
     self.fconf=fconf
-    with open('DMP.json', 'r') as j:
+    with open(self.fconf, 'r') as j:
       json_data = json.load(j)
       self.coalesce=json_data['COALESCE']
       self.focus=json_data['FOCUS']
@@ -59,9 +59,9 @@ class DFFormatter() :
       if pat in u :
         #logging.warning(u + " " + pat)
         if len(self.coalesce[pat] ) > 0 :
-          return(self.coalesce[pat])
+          return("*" + self.coalesce[pat])
         else :
-          return("*"+self.coalesce[pat] )
+          return("*"+pat)
     return(u)
 
 

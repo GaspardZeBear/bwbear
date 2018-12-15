@@ -108,13 +108,43 @@ def myPlot(datas) :
 #--------------------------------------------------------------------------------------
 def highValues(datas,threshold) :
   high=datas[ datas['ResponseTime']>threshold ]
-  OUT.out("High Resp",high)
+  #OUT.out("High Resp",high)
+  return(high)
 
 #--------------------------------------------------------------------------------------
 def groupBy(datas,grps) :
   dg=datas.groupby(grps)
   OUT.out("GroupBy " + str(grps),dg.describe(percentiles=percentiles))
+  return(dg)
 
+#--------------------------------------------------------------------------------------
+def compareHh(datas) :
+  #df7=datas[ (datas['Hh'] == 7) & (datas['PurePath'] == '/cos/fr/login') ]
+  #df7=datas[ (datas['Hh'] == 7) ]
+  #df8=datas[ (datas['Hh'] == 8) & (datas['PurePath'] == '/cos/fr/login') ]
+  #OUT.out("compare ",df7 )
+  #df7mean=df7['ResponseTime'].groupby([df7['PurePath'],df7['Application']]).mean()
+  #print("df7mean")
+  #print(df7mean)
+  #print(df7.describe())
+  #print("Mean="+str(df7.loc[:,'ResponseTime'].mean()))
+  #print("Count="+str(df7.count()))
+  #print("0.5="+str(df7.quantile()))
+  #df8=groupBy(df8,['PurePath'])
+  #df78 = pd.merge(df7, df8,  how='left', left_on=['Application','PurePath'], right_on = ['Application','PurePath'])
+  dg=datas.groupby(['Hh','Application','PurePath'])
+  ddfmean=dict()
+  ddfcount=dict()
+  for n,g in dg :
+    #print(n)
+    ddfmean[n]=g.mean()
+    ddfcount[n]=g.count()
+  for n in ddfmean :
+    print(n)
+    print(ddfmean[n])
+    print(ddfcount[n])
+  #df78=pd.merge(dg.get_group(7),dg.get_group[8],  how='outer', on=['Application','PurePath'])
+  #OUT.out("merge ",df78 )
 
 #--------------------------------------------------------------------------------------
 def filterRows(datas,col,re=' 07:') :
@@ -134,18 +164,21 @@ OUT.open()
 rawDatas=getRawdatas('PPP.pan')
 statsOnKO(rawDatas)
 statsOnOK(rawDatas)
-datas=removeAssets(rawDatas)
+#datas=removeAssets(rawDatas)
+datas=rawDatas[rawDatas.PurePath.str.contains("assets")==False]
 datas['PurePath']=datas['PurePath'].map(coalesceUrl)
 #myPlot(datas)
 
-datas['Hh']=datas['StartTime'].map(lambda x: x[11:13] )
+datas['Hh']=datas['StartTime'].map(lambda x: int(x[11:13]) )
 
-highValues(rawDatas,3000)
-groupBy(datas,['Agent'])
-groupBy(datas,['Hh','PurePath'])
-groupBy(datas,['PurePath','Hh'])
-groupBy(datas,['Application','PurePath'])
-groupBy(datas,['PurePath','Application'])
+#highValues(rawDatas,5000)
+#datas=highValues(datas,5000)
+#groupBy(datas,['Agent'])
+#groupBy(datas,['Hh','PurePath'])
+#groupBy(datas,['PurePath','Hh'])
+#groupBy(datas,['Application','PurePath'])
+#groupBy(datas,['PurePath','Application'])
 
 #filterRows(rawDatas,'StartTime',' 07:')
+compareHh(datas)
 OUT.close()

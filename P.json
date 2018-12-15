@@ -1,0 +1,28 @@
+{
+"COALESCE":
+{
+  "loginform":"",
+  "transactiongrid.showtransaction" :"",
+  "list.transactiongrid.gridtr" :"",
+  "search.remittancesearchform" :"",
+  "remittancegrid.showremittance" :"",
+  "list.remittancegrid" :"",
+  "listfromremittance" :"",
+  "generator" :"",
+  "search" :""
+},
+"FOCUS":
+[],
+"PPALIAS":
+{
+},
+"DROPCOLUMNS":
+["Breakdown","Top Findings","Duration [ms]"],
+"RENAMECOLUMNS":
+{
+"Error State":"ErrorState",
+"Response Time [ms]":"ResponseTime",
+"Start Time":"StartTime"
+}
+}
+

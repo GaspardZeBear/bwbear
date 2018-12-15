@@ -13,6 +13,7 @@ class PandasProcessor() :
   def __init__(self,param) :
     self.param=param
     self.param.processParam()
+    self.p=self.param.getAll()
     self.percentiles=[.50,.95,.99]
     pd.options.display.float_format = '{:.0f}'.format
     self.go()
@@ -24,12 +25,12 @@ class PandasProcessor() :
     fig.autofmt_xdate()
     ax.fmt_xdata = mdates.DateFormatter('%Y-%m-%d')
     ax.set_title('fig.autofmt_xdate fixes the labels')
-    ax.xaxis.set_major_formatter(mdates.DateFormatter(timeFormat))
+    ax.xaxis.set_major_formatter(mdates.DateFormatter(self.p['timeFormat']))
     dgAggr.plot(title=aggr + " " + title,color=color,rot=45,ax=ax,grid=True)
     f=title + aggr + '.png'
     plt.savefig(f)
     plt.close()
-    self.param['out'].image(f,aggr + " " +title)
+    self.p['out'].image(f,aggr + " " +title)
 
   
   #--------------------------------------------------------------------------------------
@@ -41,7 +42,7 @@ class PandasProcessor() :
     logging.warning("graphBasics setting ax")
     ax.fmt_xdata = mdates.DateFormatter('%Y-%m-%d')
     ax.set_title('fig.autofmt_xdate fixes the labels')
-    ax.xaxis.set_major_formatter(mdates.DateFormatter(timeFormat))
+    ax.xaxis.set_major_formatter(mdates.DateFormatter(self.p['timeFormat']))
     ax.set_ylabel('Time ms', color='black')
     title=id
     dfall.plot(rot=45,ax=ax,grid=True,linewidth=0)
@@ -54,7 +55,7 @@ class PandasProcessor() :
     axtwin.set_ylabel('Count', color='lightgrey')
     dfCount=dgbase.count().reset_index()
     dfm=pd.merge_ordered(dfall,dfCount,left_on='ts1m',right_on='ts1m',how='outer')
-    dfm = dfm.set_index(timeGroupby)
+    dfm = dfm.set_index(self.p['timeGroupby'])
     dfm.drop('StartTime',axis=1,inplace=True)
     dfm.fillna(value=0,inplace=True)
   
@@ -66,7 +67,7 @@ class PandasProcessor() :
     f=str(title).translate(None,' /.,:;\[]()-') + '.png'
     plt.savefig(f)
     plt.close()
-    self.param['out'].image(f,title)
+    self.p['out'].image(f,title)
   
   
   #--------------------------------------------------------------------------------------
@@ -78,14 +79,14 @@ class PandasProcessor() :
     rtime.plot.bar(title=title,rot=45,color=color)
     f=title + '.png'
     plt.savefig(f)
-    self.param['out'].image(f,title)
+    self.p['out'].image(f,title)
   
   #--------------------------------------------------------------------------------------
   def myGraphs(self,datas,title,color='blue') :
     logging.warning("graphing " + title)
     if datas.empty :
       return
-    dg=datas.groupby(timeGroupby)['ResponseTime']
+    dg=datas.groupby(self.p['timeGroupby'])['ResponseTime']
     self.graphBasicsNew(title + 'Mean, Max : ', dg, [ 
       { 'aggr' : 'Max', 'dgaggr' : dg.max(), 'color' : 'red'},
       { 'aggr' : 'Mean', 'dgaggr' : dg.mean(), 'color' : 'green'},
@@ -101,9 +102,9 @@ class PandasProcessor() :
   def myGraphsErrors(self,datas,title,color='red') :
     if datas.empty :
       return
-    dg=datas.groupby(timeGroupby)['Error']
+    dg=datas.groupby(self.p['timeGroupby'])['Error']
     #logging.warning(dg.sum())
-    graphAggregated('Sum', dg.sum() ,title, color)
+    self.graphAggregated('Sum', dg.sum() ,title, color)
   
   
   #--------------------------------------------------------------------------------------
@@ -112,7 +113,7 @@ class PandasProcessor() :
     if datas.empty :
       return
     dg=datas.groupby(grps)['ResponseTime']
-    self.param['out'].out("GroupBy " + str(grps) + " statistics" ,dg.describe(percentiles=percentiles))
+    self.p['out'].out("GroupBy " + str(grps) + " statistics" ,dg.describe(percentiles=self.percentiles))
   
   #--------------------------------------------------------------------------------------
   def autofocus(self,datas) :
@@ -127,12 +128,12 @@ class PandasProcessor() :
   
   #--------------------------------------------------------------------------------------
   def go(self) :
-    DFF=DFFormatter(self.param['datafile'],self.param['formatfile'],self.param['out'])
+    DFF=DFFormatter(self.p['datafile'],self.p['formatfile'],self.p['out'])
     rawDatas=DFF.getDf()
     logging.debug(rawDatas)
     rawDatas=rawDatas[rawDatas.PurePath.str.contains("assets")==False]
   
-    self.param['out'].h2("Analyzing transaction in Error ")
+    self.p['out'].h2("Analyzing transaction in Error ")
     self.myGraphsErrors(rawDatas,'All Errors over time')
     self.groupByDescribe(rawDatas,["ErrorState"])
     dfKO=rawDatas[ ( rawDatas['ErrorState'] != 'OK') ]
@@ -140,17 +141,17 @@ class PandasProcessor() :
     self.groupByDescribe(dfKO,["PurePath"])
     #self.myGraphs(dfKO,'All Errors')
   
-    self.param['out'].h2("Analyzing transactions in status OK ")
+    self.p['out'].h2("Analyzing transactions in status OK ")
     dfOK=rawDatas[ ( rawDatas['ErrorState'] == 'OK' ) ]
     self.groupByDescribe(dfOK,["Agent"])
     self.groupByDescribe(dfOK,["PurePath"])
     dfFocus=dfOK[ dfOK['PurePath'].isin( ["/dmp/creation/recherchepatientparcartevitale","/si-dmp-server/v1/services//repository","/rechercherpatient"])]
     self.autofocus(dfOK)
   
-    dfall=pd.DataFrame(dfOK.groupby(timeGroupby)['StartTime'].count().apply(lambda x: 0))
+    dfall=pd.DataFrame(dfOK.groupby(self.p['timeGroupby'])['StartTime'].count().apply(lambda x: 0))
     self.myGraphs(dfOK,'All OK')
   
-    self.param['out'].h2("Analyzing selected transaction")
+    self.p['out'].h2("Analyzing selected transaction")
     #dfFocus=dfOK[ dfOK['PurePath'].isin( DFF.getInterestingPurepaths()) ]
     #self.groupByDescribe(dfOK,["PurePath"])
     #self.groupByDescribe(dfOK,["PurePath"])
@@ -160,11 +161,11 @@ class PandasProcessor() :
     for pp in DFF.getInterestingPurepaths() :
       self.myGraphs(dfOK[dfOK['PurePath'] == pp], pp)
   
-    self.param['out'].h2("Analyzing transactions with response time > " + str(HIGHRESPONSETIME) )
+    self.p['out'].h2("Analyzing transactions with response time > " + str(HIGHRESPONSETIME) )
     self.groupByDescribe(dfOK[ ( dfOK['ResponseTime'] > HIGHRESPONSETIME ) ],["PurePath"])
-    self.param['out'].out("Samples OK having high resp time ",dfOK[ ( dfOK['ResponseTime'] > HIGHRESPONSETIME ) ])
+    self.p['out'].out("Samples OK having high resp time ",dfOK[ ( dfOK['ResponseTime'] > HIGHRESPONSETIME ) ])
   
-    self.param['out'].h2("Detail of transactions in error state")
-    self.param['out'].out("Samples KO failed ",dfKO)
-    #self.param['out'].out("Rawdatas detail",dfOK)
+    self.p['out'].h2("Detail of transactions in error state")
+    self.p['out'].out("Samples KO failed ",dfKO)
+    #self.p['out'].out("Rawdatas detail",dfOK)
   
