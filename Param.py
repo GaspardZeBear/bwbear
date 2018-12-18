@@ -36,5 +36,10 @@ class Param() :
       self.p['timeFormat']='%H-%M'
     if 'highResponseTime' not in self.p :
       self.p['highResponseTime']=5000
+    if 'autofocusmean' not in self.p :
+      self.p['autofocusmean']=500
+    if 'autofocuscount' not in self.p :
+      self.p['autofocuscount']=30
+      self.p['autofocusmean']=500
 
 

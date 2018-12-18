@@ -125,10 +125,10 @@ class PandasProcessor() :
     #logging.warning(dg.describe())
     #logging.warning("Filtered dg")
     #dg1=dg.mean().filter(lambda x: x['ResponseTime'] > 500)
-    dg1=dg[ ( dg['ResponseTime_mean'] > 500 ) & ( dg['ResponseTime_count'] > 20 ) ]
+    dg1=dg[ ( dg['ResponseTime_mean'] >= self.p['autofocusmean'] ) & ( dg['ResponseTime_count'] >= self.p['autofocuscount'] ) ]
     #logging.warning("dg1 : filtered  dg")
     #logging.warning(dg1)
-    return(dg1["PurePath_"].values)
+    return(dg1["PurePath_"].values.tolist())
     #sys.exit()
   
   #--------------------------------------------------------------------------------------
