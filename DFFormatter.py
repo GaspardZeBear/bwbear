@@ -31,6 +31,7 @@ class DFFormatter() :
     with open(self.fconf, 'r') as j:
       json_data = json.load(j)
       self.coalesce=json_data['COALESCE']
+      self.autofocus=[]
       self.focus=json_data['FOCUS']
       self.ppalias=json_data['PPALIAS']
       self.dropcolumns=json_data['DROPCOLUMNS']
@@ -50,8 +51,18 @@ class DFFormatter() :
     return(self.df)
 
   #--------------------------------------------------------------------------------------
-  def getInterestingPurepaths(self) :
-    return(self.focus)
+  def getFocusedPurepaths(self) :
+    logging.warning("focus")
+    logging.warning(self.focus)
+    logging.warning("autofocus")
+    logging.warning(self.autofocus)
+    return(self.focus + self.autofocus)
+
+  #--------------------------------------------------------------------------------------
+  def setAutofocus(self,autofocus) :
+    self.autofocus=autofocus
+    logging.warning("autofocus")
+    logging.warning(self.autofocus)
 
   #--------------------------------------------------------------------------------------
   def coalesceUrl(self,u) :
