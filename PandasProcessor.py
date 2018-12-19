@@ -131,7 +131,6 @@ class PandasProcessor() :
     DFF=DFFormatter(self.p['datafile'],self.p['formatfile'],self.p['out'])
     rawDatas=DFF.getDf()
     logging.debug(rawDatas)
-    rawDatas=rawDatas[rawDatas.PurePath.str.contains("assets")==False]
     
     dfOK=rawDatas[ ( rawDatas['ErrorState'] == 'OK' ) ]
     self.dfall=pd.DataFrame(dfOK.groupby(self.p['timeGroupby'])['StartTime'].count().apply(lambda x: 0))
@@ -139,22 +138,15 @@ class PandasProcessor() :
   
   
     self.p['out'].h2("Analyzing transaction in Error ")
-    #self.myGraphsErrors(rawDatas,'All Errors over time')
-    #self.groupByDescribe(rawDatas,["ErrorState"])
     dfKO=rawDatas[ ( rawDatas['ErrorState'] != 'OK') ]
-    #self.groupByDescribe(dfKO,["Agent"])
-    #self.groupByDescribe(dfKO,["PurePath"])
     self.myGraphs(dfKO,'All Errors')
     
     self.p['out'].h2("Analyzing transactions in status OK ")
     self.myGraphs(dfOK, 'AllOk')
-    #self.groupByDescribe(dfOK,["Agent"])
-    #self.groupByDescribe(dfOK,["PurePath"])
   
     self.p['out'].h2("Analyzing selected transaction")
     dfFocus=dfOK[ dfOK['PurePath'].isin( DFF.getFocusedPurepaths()) ]
     self.myGraphs(dfFocus,'Focus')
-    #self.groupByDescribe(dfFocus,["PurePath"])
   
     #for pp in dfOK['PurePath'].unique() :
     for pp in DFF.getFocusedPurepaths() :

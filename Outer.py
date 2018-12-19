@@ -80,7 +80,7 @@ class OutputHtml(Out) :
     print(o.to_html(border=1))
 
   def image(self,img,title) :
-    print("<h3> Graph : " + title + "</h3>")
+    print("<h4> Graph : " + title + "</h4>")
     print("<img src=\"" +img+ "\">")
 
 #--------------------------------------------------------------------------------------

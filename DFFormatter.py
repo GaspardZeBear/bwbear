@@ -35,6 +35,7 @@ class DFFormatter() :
       self.focus=json_data['FOCUS']
       self.ppalias=json_data['PPALIAS']
       self.dropcolumns=json_data['DROPCOLUMNS']
+      self.droprows=json_data['DROPROWS']
       self.renamecolumns=json_data['RENAMECOLUMNS']
       logging.warning(json_data)
 
@@ -103,6 +104,8 @@ class DFFormatter() :
       logging.warning("renamecolumns " + str(self.renamecolumns))
       rawdatas.rename (self.renamecolumns,
         inplace=True,axis=1)
+      for pp in self.droprows :
+        rawdatas=rawdatas[rawdatas.PurePath.str.contains(pp)==False]
       logging.warning(rawdatas.head())
       rawdatas['PurePath']=rawdatas['PurePath'].map(self.coalesceUrl)
       rawdatas['StartTime']=pd.to_datetime(rawdatas['StartTime'],infer_datetime_format=True)
