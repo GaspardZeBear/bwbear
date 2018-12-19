@@ -47,14 +47,14 @@ class PandasProcessor() :
     title=id
     self.dfall.plot(rot=45,ax=ax,grid=True,linewidth=0)
     for dg in dgList : 
-      title=title +  dg['aggr']
+      #title=title +  dg['aggr']
       dg['dgaggr'].plot(title=dg['aggr'],rot=45,ax=ax,grid=True,color=dg['color'],legend=True,label=dg['aggr'],linewidth=1)
       ax.set_ylim(ymin=0)
     logging.debug("graphBasics setting axtwin")
     axtwin=ax.twinx()
     axtwin.set_ylabel('Count', color='lightgrey')
     dfCount=dgbase.count().reset_index()
-    dfm=pd.merge_ordered(self.dfall,dfCount,left_on='ts1m',right_on='ts1m',how='outer')
+    dfm=pd.merge_ordered(self.dfall,dfCount,left_on=self.p['timeGroupby'],right_on=self.p['timeGroupby'],how='outer')
     dfm = dfm.set_index(self.p['timeGroupby'])
     dfm.drop('StartTime',axis=1,inplace=True)
     dfm.fillna(value=0,inplace=True)
@@ -79,6 +79,7 @@ class PandasProcessor() :
     rtime.plot.bar(title=title,rot=45,color=color)
     f=title + '.png'
     plt.savefig(f)
+    plt.close()
     self.p['out'].image(f,title)
   
   #--------------------------------------------------------------------------------------
@@ -87,6 +88,8 @@ class PandasProcessor() :
     if datas.empty :
       return
     dg=datas.groupby(self.p['timeGroupby'])['ResponseTime']
+    self.groupByDescribe(datas,["Agent"])
+    self.groupByDescribe(datas,["PurePath"])
     self.graphBasicsNew(title, dg, [ 
       { 'aggr' : 'Max', 'dgaggr' : dg.max(), 'color' : 'red'},
       { 'aggr' : 'Mean', 'dgaggr' : dg.mean(), 'color' : 'green'},
@@ -120,16 +123,8 @@ class PandasProcessor() :
     dg=datas.groupby('PurePath',as_index=False).agg({"ResponseTime": ['mean', 'count']})
     #dg.columns=dg.columns.droplevel(level=0)
     dg.columns=["_".join(x) for x in dg.columns.ravel()]
-    #logging.warning("Full dg")
-    #logging.warning(dg)
-    #logging.warning(dg.describe())
-    #logging.warning("Filtered dg")
-    #dg1=dg.mean().filter(lambda x: x['ResponseTime'] > 500)
     dg1=dg[ ( dg['ResponseTime_mean'] >= self.p['autofocusmean'] ) & ( dg['ResponseTime_count'] >= self.p['autofocuscount'] ) ]
-    #logging.warning("dg1 : filtered  dg")
-    #logging.warning(dg1)
     return(dg1["PurePath_"].values.tolist())
-    #sys.exit()
   
   #--------------------------------------------------------------------------------------
   def go(self) :
@@ -137,27 +132,29 @@ class PandasProcessor() :
     rawDatas=DFF.getDf()
     logging.debug(rawDatas)
     rawDatas=rawDatas[rawDatas.PurePath.str.contains("assets")==False]
-  
-    self.p['out'].h2("Analyzing transaction in Error ")
-    self.myGraphsErrors(rawDatas,'All Errors over time')
-    self.groupByDescribe(rawDatas,["ErrorState"])
-    dfKO=rawDatas[ ( rawDatas['ErrorState'] != 'OK') ]
-    self.groupByDescribe(dfKO,["Agent"])
-    self.groupByDescribe(dfKO,["PurePath"])
-    #self.myGraphs(dfKO,'All Errors')
-  
-    self.p['out'].h2("Analyzing transactions in status OK ")
+    
     dfOK=rawDatas[ ( rawDatas['ErrorState'] == 'OK' ) ]
-    self.groupByDescribe(dfOK,["Agent"])
-    self.groupByDescribe(dfOK,["PurePath"])
+    self.dfall=pd.DataFrame(dfOK.groupby(self.p['timeGroupby'])['StartTime'].count().apply(lambda x: 0))
     DFF.setAutofocus(self.autofocus(dfOK))
   
-    self.dfall=pd.DataFrame(dfOK.groupby(self.p['timeGroupby'])['StartTime'].count().apply(lambda x: 0))
-    self.myGraphs(dfOK,'All OK')
+  
+    self.p['out'].h2("Analyzing transaction in Error ")
+    #self.myGraphsErrors(rawDatas,'All Errors over time')
+    #self.groupByDescribe(rawDatas,["ErrorState"])
+    dfKO=rawDatas[ ( rawDatas['ErrorState'] != 'OK') ]
+    #self.groupByDescribe(dfKO,["Agent"])
+    #self.groupByDescribe(dfKO,["PurePath"])
+    self.myGraphs(dfKO,'All Errors')
+    
+    self.p['out'].h2("Analyzing transactions in status OK ")
+    self.myGraphs(dfOK, 'AllOk')
+    #self.groupByDescribe(dfOK,["Agent"])
+    #self.groupByDescribe(dfOK,["PurePath"])
   
     self.p['out'].h2("Analyzing selected transaction")
     dfFocus=dfOK[ dfOK['PurePath'].isin( DFF.getFocusedPurepaths()) ]
-    self.groupByDescribe(dfFocus,["PurePath"])
+    self.myGraphs(dfFocus,'Focus')
+    #self.groupByDescribe(dfFocus,["PurePath"])
   
     #for pp in dfOK['PurePath'].unique() :
     for pp in DFF.getFocusedPurepaths() :
