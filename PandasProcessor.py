@@ -87,7 +87,7 @@ class PandasProcessor() :
     if datas.empty :
       return
     dg=datas.groupby(self.p['timeGroupby'])['ResponseTime']
-    self.graphBasicsNew(title + 'Mean, Max : ', dg, [ 
+    self.graphBasicsNew(title, dg, [ 
       { 'aggr' : 'Max', 'dgaggr' : dg.max(), 'color' : 'red'},
       { 'aggr' : 'Mean', 'dgaggr' : dg.mean(), 'color' : 'green'},
       ])
@@ -150,7 +150,6 @@ class PandasProcessor() :
     dfOK=rawDatas[ ( rawDatas['ErrorState'] == 'OK' ) ]
     self.groupByDescribe(dfOK,["Agent"])
     self.groupByDescribe(dfOK,["PurePath"])
-    #dfFocus=dfOK[ dfOK['PurePath'].isin( ["/dmp/creation/recherchepatientparcartevitale","/si-dmp-server/v1/services//repository","/rechercherpatient"])]
     DFF.setAutofocus(self.autofocus(dfOK))
   
     self.dfall=pd.DataFrame(dfOK.groupby(self.p['timeGroupby'])['StartTime'].count().apply(lambda x: 0))
@@ -158,8 +157,6 @@ class PandasProcessor() :
   
     self.p['out'].h2("Analyzing selected transaction")
     dfFocus=dfOK[ dfOK['PurePath'].isin( DFF.getFocusedPurepaths()) ]
-    #self.groupByDescribe(dfOK,["PurePath"])
-    #self.groupByDescribe(dfOK,["PurePath"])
     self.groupByDescribe(dfFocus,["PurePath"])
   
     #for pp in dfOK['PurePath'].unique() :

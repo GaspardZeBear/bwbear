@@ -114,11 +114,13 @@ class DFFormatter() :
       self.out.out("File header and PP name reformatted",rawdatas.head())
     else :
       rawdatas['StartTime']=pd.to_datetime(rawdatas['StartTime'],infer_datetime_format=True)
+      rawdatas['ts1m']=pd.to_datetime(rawdatas['ts1m'],infer_datetime_format=True)
+      rawdatas['ts10m']=pd.to_datetime(rawdatas['ts10m'],infer_datetime_format=True)
       #rawdatas.drop (
       #  ["Unnamed: 0"],
       #  inplace=True,axis=1
       #)
-
+    logging.warning(rawdatas.dtypes)
     self.out.out("File TAIL",rawdatas.tail())
     #self.out.out("Infos",rawdatas.info())
     self.out.out("File statistics",rawdatas.describe(percentiles=DFFormatter.percentiles))
