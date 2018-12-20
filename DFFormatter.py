@@ -14,9 +14,12 @@ class DFFormatter() :
   pd.options.display.float_format = '{:.0f}'.format
 
   #--------------------------------------------------------------------------------------
-  def __init__(self,f,fconf,out) :
-    self.file=f
-    self.fconf=fconf
+  def __init__(self,p) :
+    logging.warning("DFFormatter begins")
+    self.file=p['datafile']
+    self.fconf=p['formatfile']
+    self.out=p['out']
+    self.decimal=p['decimal']
     with open(self.fconf, 'r') as j:
       json_data = json.load(j)
       self.coalesce=json_data['COALESCE']
@@ -28,13 +31,14 @@ class DFFormatter() :
       self.renamecolumns=json_data['RENAMECOLUMNS']
       logging.warning(json_data)
 
-    self.out=out
     self.df=None
     pd.set_option("display.max_rows",None)
     if self.file.endswith('.pan') :
+      self.decimal='.'
       self.getRawdatas(False)
     else :
       self.getRawdatas(True)
+    logging.warning("DFFormatter ends")
 
   #--------------------------------------------------------------------------------------
   def getDf(self) :
@@ -77,10 +81,10 @@ class DFFormatter() :
 #--------------------------------------------------------------------------------------
   def getRawdatas(self,wrangle=True) :
     #pd.set_option("display.max_rows",None)
-  #pd.set_option("display.max_rows",10)
+    #pd.set_option("display.max_rows",10)
     self.out.h1("Analyzing file " + self.file)
-    rawdatas=pd.read_csv(self.file,sep=';',decimal=',')
     self.out.h2("Raw datas")
+    rawdatas=pd.read_csv(self.file,sep=';',decimal=self.decimal)
     self.out.out("File HEAD",rawdatas.head())
     
     if wrangle :

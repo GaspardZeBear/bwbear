@@ -45,6 +45,8 @@ class Param() :
     else :
         self.p['out']=OutputTty()
     self.p['out'].open()
+    if 'decimal' not in self.p :
+      self.p['decimal']=','
     if 'timeGroupby' not in self.p :
       self.p['timeGroupby']='ts1m'
     if 'timeFormat' not in self.p :

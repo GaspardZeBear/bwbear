@@ -135,7 +135,8 @@ class PandasProcessor() :
   
   #--------------------------------------------------------------------------------------
   def go(self) :
-    DFF=DFFormatter(self.p['datafile'],self.p['formatfile'],self.p['out'])
+    #DFF=DFFormatter(self.p['datafile'],self.p['formatfile'],self.p['out'])
+    DFF=DFFormatter(self.p)
     rawDatas=DFF.getDf()
     logging.debug(rawDatas)
     
@@ -168,6 +169,7 @@ class PandasProcessor() :
     self.p['out'].h2("Analyzing transactions with response time > " + str(self.p['highResponseTime']) )
     self.p['out'].h3("Statistics")
     self.groupByDescribe(dfOK[ ( dfOK['ResponseTime'] > self.p['highResponseTime'] ) ],["PurePath"])
+    self.myGraphs(dfOK[ ( dfOK['ResponseTime'] > self.p['highResponseTime'] ) ],'HighResponseTime')
     self.p['out'].out("Samples OK having high resp time ",dfOK[ ( dfOK['ResponseTime'] > self.p['highResponseTime'] ) ])
   
     self.p['out'].h2("Detail of transactions in error state")

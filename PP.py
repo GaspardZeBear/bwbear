@@ -11,6 +11,7 @@ import click
 @click.option('--output', default='html')
 @click.option('--timegroupby', default='ts1m')
 @click.option('--timeformat', default='%H-%M')
+@click.option('--decimal', default=',')
 @click.option('--highresponsetime', default=5000)
 @click.option('--autofocusmean', default=100)
 @click.option('--autofocuscount', default=30)
@@ -23,6 +24,7 @@ def launch(
   output,
   timegroupby,
   timeformat,
+  decimal,
   highresponsetime,
   autofocusmean,
   autofocuscount,
@@ -37,6 +39,7 @@ def launch(
   p.set('verbose',verbose)
   p.set('highResponseTime',highresponsetime)
   p.set('timeFormat',timeformat)
+  p.set('decimal',decimal)
   p.set('timeGroupby',timegroupby)
   p.set('autofocusmean',autofocusmean)
   p.set('autofocuscount',autofocuscount)
@@ -44,5 +47,7 @@ def launch(
 
 #--------------------------------------------------------------------------------------
 if __name__ == '__main__':
+  logging.warning("Start")
   launch()
+  logging.warning("End")
 
