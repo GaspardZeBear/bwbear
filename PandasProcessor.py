@@ -48,7 +48,12 @@ class PandasProcessor() :
     self.dfall.plot(rot=45,ax=ax,grid=True,linewidth=0)
     for dg in dgList : 
       #title=title +  dg['aggr']
-      dg['dgaggr'].plot(title=dg['aggr'],rot=45,ax=ax,grid=True,color=dg['color'],legend=True,label=dg['aggr'],linewidth=1)
+      style=self.param.getGraphStyle(dg['aggr'])
+      # ok dg['dgaggr'].plot(title=dg['aggr'],rot=45,ax=ax,grid=True,color=dg['color'],legend=True,label=dg['aggr'],linewidth=1)
+      dg['dgaggr'].plot(title=dg['aggr'],rot=45,ax=ax,grid=True,color=style['color'],legend=True,label=dg['aggr'],linewidth=style['linewidth'])
+      if dg['dgaggr'].count() < 50 :
+        #dg['dgaggr'].plot(title=dg['aggr'],rot=45,ax=ax,grid=True,legend=True,label=dg['aggr'],style='o')
+        dg['dgaggr'].plot(title=dg['aggr'],rot=45,ax=ax,grid=True,legend=True,label=dg['aggr'],style=style['point'])
       ax.set_ylim(ymin=0)
     logging.debug("graphBasics setting axtwin")
     axtwin=ax.twinx()

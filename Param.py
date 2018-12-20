@@ -5,6 +5,13 @@ from Outer import *
 
 class Param() :
 
+  graphStyles={
+    "Mean" : { "color": "green", "linewidth" :2 , "point" : "go"},
+    "Max" : { "color": "red", "linewidth" :0.2 , "point" : "ro"},
+    "default" : { "color": "black", "linewidth" :1 , "point" : "go"}
+  }
+    
+
   def __init__(self) :
     self.p={}
 
@@ -13,6 +20,12 @@ class Param() :
 
   def get(self,key) :
     return(self.p[key])
+
+  def getGraphStyle(self,key) :
+    if key in Param.graphStyles :
+      return(Param.graphStyles[key])
+    else :
+      return(Param.graphStyles["default"])
 
   def getAll(self) :
     return(self.p)
