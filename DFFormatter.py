@@ -13,17 +13,6 @@ class DFFormatter() :
   percentiles=[.50,.95,.99]
   pd.options.display.float_format = '{:.0f}'.format
 
-
-  PP={
-      "Go to page result 5" : "Result5",
-      "Go to remise detail" : "RemiseDetail",
-      "Go to remises tab" : "RemiseTab",
-      "Go to transaction detail" : "TransactionDetail",
-      "Search remises on Date" : "SearchRemisesDate",
-      "Search transactions on Date" : "SearchTransactionsDate",
-      "Search transactions on Date & paymentScheme" : "SearchTransactionsDateScheme",
-  }
-
   #--------------------------------------------------------------------------------------
   def __init__(self,f,fconf,out) :
     self.file=f
@@ -119,12 +108,8 @@ class DFFormatter() :
       rawdatas['StartTime']=pd.to_datetime(rawdatas['StartTime'],infer_datetime_format=True)
       rawdatas['ts1m']=pd.to_datetime(rawdatas['ts1m'],infer_datetime_format=True)
       rawdatas['ts10m']=pd.to_datetime(rawdatas['ts10m'],infer_datetime_format=True)
-      #rawdatas.drop (
-      #  ["Unnamed: 0"],
-      #  inplace=True,axis=1
-      #)
     logging.warning(rawdatas.dtypes)
     self.out.out("File TAIL",rawdatas.tail())
     #self.out.out("Infos",rawdatas.info())
-    self.out.out("File statistics",rawdatas.describe(percentiles=DFFormatter.percentiles))
+    self.out.out("File statistics",rawdatas['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
     self.df=rawdatas

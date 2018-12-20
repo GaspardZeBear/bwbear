@@ -75,6 +75,9 @@ class OutputHtml(Out) :
   def h3(self,h3) :
     print("<h3>"+h3+"</h3>")
 
+  def p(self,p) :
+    print("<p>"+p+"</p>")
+
   def out(self,title,o) :
     print("<h4>"+title+"</h4>")
     if o.empty :

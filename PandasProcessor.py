@@ -83,14 +83,16 @@ class PandasProcessor() :
     self.p['out'].image(f,title)
   
   #--------------------------------------------------------------------------------------
-  def myGraphs(self,datas,title,color='blue') :
+  def myGraphs(self,datas,title,describe=['Agent','PurePath']) :
     logging.debug("graphing " + title)
     if datas.empty :
       return
     self.p['out'].h3("Statistics and graph : " + title)
     dg=datas.groupby(self.p['timeGroupby'])['ResponseTime']
-    self.groupByDescribe(datas,["Agent"])
-    self.groupByDescribe(datas,["PurePath"])
+    for d in describe :
+      self.groupByDescribe(datas,[d])
+    #self.groupByDescribe(datas,["Agent"])
+    #self.groupByDescribe(datas,["PurePath"])
     self.graphBasicsNew(title, dg, [ 
       { 'aggr' : 'Max', 'dgaggr' : dg.max(), 'color' : 'red'},
       { 'aggr' : 'Mean', 'dgaggr' : dg.mean(), 'color' : 'green'},
@@ -134,19 +136,25 @@ class PandasProcessor() :
     logging.debug(rawDatas)
     
     dfOK=rawDatas[ ( rawDatas['ErrorState'] == 'OK' ) ]
+    dfKO=rawDatas[ ( rawDatas['ErrorState'] != 'OK') ]
     self.dfall=pd.DataFrame(dfOK.groupby(self.p['timeGroupby'])['StartTime'].count().apply(lambda x: 0))
     DFF.setAutofocus(self.autofocus(dfOK))
-  
-  
-    self.p['out'].h2("Analyzing transaction in Error ")
-    dfKO=rawDatas[ ( rawDatas['ErrorState'] != 'OK') ]
-    self.myGraphs(dfKO,'All Errors')
-    
-    self.p['out'].h2("Analyzing transactions in status OK ")
-    self.myGraphs(dfOK, 'AllOk')
-  
-    self.p['out'].h2("Analyzing selected transaction")
     dfFocus=dfOK[ dfOK['PurePath'].isin( DFF.getFocusedPurepaths()) ]
+  
+    self.p['out'].h2("Analyzing transactions in status OK ")
+    self.p['out'].out("File statistics",dfOK['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
+    self.myGraphs(dfOK, 'AllOk',["Agent"])
+
+    self.p['out'].h2("Analyzing transactions in Error ")
+    self.myGraphs(dfKO,'All Errors')
+  
+    self.p['out'].h2("Analyzing focused transactions")
+
+    self.p['out'].h3("Focus details")
+    self.p['out'].p("--autofocusmean : " + str(self.p['autofocusmean']))
+    self.p['out'].p("--autofocuscount : " + str(self.p['autofocuscount']))
+
+    self.p['out'].out("File statistics",dfFocus['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
     self.myGraphs(dfFocus,'Focus')
   
     #for pp in dfOK['PurePath'].unique() :
@@ -160,5 +168,9 @@ class PandasProcessor() :
   
     self.p['out'].h2("Detail of transactions in error state")
     self.p['out'].out("Samples KO failed ",dfKO)
+
+    self.p['out'].h2("More details on transactions OK")
+    self.myGraphs(dfOK, 'AllOk')
+
     #self.p['out'].out("Rawdatas detail",dfOK)
   
