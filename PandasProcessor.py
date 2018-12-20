@@ -87,6 +87,7 @@ class PandasProcessor() :
     logging.debug("graphing " + title)
     if datas.empty :
       return
+    self.p['out'].h3("Statistics and graph : " + title)
     dg=datas.groupby(self.p['timeGroupby'])['ResponseTime']
     self.groupByDescribe(datas,["Agent"])
     self.groupByDescribe(datas,["PurePath"])
@@ -153,6 +154,7 @@ class PandasProcessor() :
       self.myGraphs(dfOK[dfOK['PurePath'] == pp], pp)
   
     self.p['out'].h2("Analyzing transactions with response time > " + str(self.p['highResponseTime']) )
+    self.p['out'].h3("Statistics")
     self.groupByDescribe(dfOK[ ( dfOK['ResponseTime'] > self.p['highResponseTime'] ) ],["PurePath"])
     self.p['out'].out("Samples OK having high resp time ",dfOK[ ( dfOK['ResponseTime'] > self.p['highResponseTime'] ) ])
   
