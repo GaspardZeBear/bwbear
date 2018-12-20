@@ -47,6 +47,8 @@ class Param() :
     self.p['out'].open()
     if 'decimal' not in self.p :
       self.p['decimal']=','
+    if 'ymax' not in self.p :
+      self.p['ymax']='0'
     if 'timeGroupby' not in self.p :
       self.p['timeGroupby']='ts1m'
     if 'timeFormat' not in self.p :

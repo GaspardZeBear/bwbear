@@ -51,7 +51,10 @@ class PandasProcessor() :
       dg['dgaggr'].plot(title=dg['aggr'],rot=45,ax=ax,grid=True,color=style['color'],legend=True,label=dg['aggr'],linewidth=style['linewidth'])
       if dg['dgaggr'].count() < 50 :
         dg['dgaggr'].plot(title=dg['aggr'],rot=45,ax=ax,grid=True,legend=True,label=dg['aggr'],style=style['point'])
-      ax.set_ylim(ymin=0)
+      if self.p['ymax'] > 0 :
+        ax.set_ylim(ymin=0,ymax=self.p['ymax'])
+      else :
+        ax.set_ylim(ymin=0)
     logging.debug("graphBasics setting axtwin")
     axtwin=ax.twinx()
     axtwin.set_ylabel('Count', color='lightgrey')
@@ -61,8 +64,6 @@ class PandasProcessor() :
     dfm.drop('StartTime',axis=1,inplace=True)
     dfm.fillna(value=0,inplace=True)
   
-    #dgbase.count().plot(ax=axtwin,style='o')
-    #dgbase.count().plot(ax=axtwin,color='lightgrey',linestyle='-.')
     dfm.plot(ax=axtwin,color='lightgrey',linestyle='--',legend=True,label='Count')
     axtwin.set_ylim(ymin=0)
     logging.debug("title " + title)
@@ -93,20 +94,12 @@ class PandasProcessor() :
     dg=datas.groupby(self.p['timeGroupby'])['ResponseTime']
     for d in describe :
       self.groupByDescribe(datas,[d])
-    #self.groupByDescribe(datas,["Agent"])
-    #self.groupByDescribe(datas,["PurePath"])
-    self.graphBasicsNew(title, dg, [ 
+    self.graphBasicsNew("Time vision", dg, [ 
       { 'aggr' : 'Max', 'dgaggr' : dg.max(), 'color' : 'red'},
       { 'aggr' : 'Mean', 'dgaggr' : dg.mean(), 'color' : 'green'},
       { 'aggr' : 'Q50', 'dgaggr' : dg.quantile(0.5), 'color' : 'green'},
       { 'aggr' : 'Q95', 'dgaggr' : dg.quantile(0.95), 'color' : 'green'},
       ])
-    #self.graphBasicsNew(title + 'Quantiles : ', dg, [ 
-    #  { 'aggr' : 'Q99', 'dgaggr' : dg.quantile(0.99), 'color' : 'black'},
-    #  { 'aggr' : 'Q95', 'dgaggr' : dg.quantile(0.95), 'color' : 'grey'},
-    #  { 'aggr' : 'Q50', 'dgaggr' : dg.quantile(0.5), 'color' : 'lightgrey'},
-    #  ])
-    
   
   #--------------------------------------------------------------------------------------
   def myGraphsErrors(self,datas,title,color='red') :
@@ -135,7 +128,7 @@ class PandasProcessor() :
   
   #--------------------------------------------------------------------------------------
   def go(self) :
-    #DFF=DFFormatter(self.p['datafile'],self.p['formatfile'],self.p['out'])
+    logging.warning("Start")
     DFF=DFFormatter(self.p)
     rawDatas=DFF.getDf()
     logging.debug(rawDatas)
@@ -179,4 +172,5 @@ class PandasProcessor() :
     self.myGraphs(dfOK, 'AllOk')
 
     #self.p['out'].out("Rawdatas detail",dfOK)
+    logging.warning("End")
   

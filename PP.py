@@ -15,6 +15,7 @@ import click
 @click.option('--highresponsetime', default=5000)
 @click.option('--autofocusmean', default=100)
 @click.option('--autofocuscount', default=30)
+@click.option('--ymax', default=0)
 @click.option('--pandas', default='Pandas')
 @click.option('--verbose', is_flag=True, default=False)
 
@@ -28,6 +29,7 @@ def launch(
   highresponsetime,
   autofocusmean,
   autofocuscount,
+  ymax,
   pandas,
   verbose
   ) :
@@ -40,6 +42,7 @@ def launch(
   p.set('highResponseTime',highresponsetime)
   p.set('timeFormat',timeformat)
   p.set('decimal',decimal)
+  p.set('ymax',ymax)
   p.set('timeGroupby',timegroupby)
   p.set('autofocusmean',autofocusmean)
   p.set('autofocuscount',autofocuscount)
