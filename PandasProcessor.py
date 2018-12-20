@@ -47,12 +47,9 @@ class PandasProcessor() :
     title=id
     self.dfall.plot(rot=45,ax=ax,grid=True,linewidth=0)
     for dg in dgList : 
-      #title=title +  dg['aggr']
       style=self.param.getGraphStyle(dg['aggr'])
-      # ok dg['dgaggr'].plot(title=dg['aggr'],rot=45,ax=ax,grid=True,color=dg['color'],legend=True,label=dg['aggr'],linewidth=1)
       dg['dgaggr'].plot(title=dg['aggr'],rot=45,ax=ax,grid=True,color=style['color'],legend=True,label=dg['aggr'],linewidth=style['linewidth'])
       if dg['dgaggr'].count() < 50 :
-        #dg['dgaggr'].plot(title=dg['aggr'],rot=45,ax=ax,grid=True,legend=True,label=dg['aggr'],style='o')
         dg['dgaggr'].plot(title=dg['aggr'],rot=45,ax=ax,grid=True,legend=True,label=dg['aggr'],style=style['point'])
       ax.set_ylim(ymin=0)
     logging.debug("graphBasics setting axtwin")
@@ -101,6 +98,8 @@ class PandasProcessor() :
     self.graphBasicsNew(title, dg, [ 
       { 'aggr' : 'Max', 'dgaggr' : dg.max(), 'color' : 'red'},
       { 'aggr' : 'Mean', 'dgaggr' : dg.mean(), 'color' : 'green'},
+      { 'aggr' : 'Q50', 'dgaggr' : dg.quantile(0.5), 'color' : 'green'},
+      { 'aggr' : 'Q95', 'dgaggr' : dg.quantile(0.95), 'color' : 'green'},
       ])
     #self.graphBasicsNew(title + 'Quantiles : ', dg, [ 
     #  { 'aggr' : 'Q99', 'dgaggr' : dg.quantile(0.99), 'color' : 'black'},

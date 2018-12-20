@@ -79,7 +79,7 @@ class DFFormatter() :
     #pd.set_option("display.max_rows",None)
   #pd.set_option("display.max_rows",10)
     self.out.h1("Analyzing file " + self.file)
-    rawdatas=pd.read_csv(self.file,sep=';')
+    rawdatas=pd.read_csv(self.file,sep=';',decimal=',')
     self.out.h2("Raw datas")
     self.out.out("File HEAD",rawdatas.head())
     
