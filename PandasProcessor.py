@@ -15,8 +15,17 @@ class PandasProcessor() :
     self.param.processParam()
     self.p=self.param.getAll()
     self.percentiles=[.50,.95,.99]
+    self.filenoGen=self.fileno(1000)
+    self.fileCounter=0
     pd.options.display.float_format = '{:.0f}'.format
     self.go()
+
+
+
+  #--------------------------------------------------------------------------------------
+  def fileno(self,n) :
+    for i in range(n) :
+      yield i+1
 
   #--------------------------------------------------------------------------------------
   def graphAggregated(self,aggr,dgAggr,title,color='blue') :
@@ -32,6 +41,14 @@ class PandasProcessor() :
     plt.close()
     self.p['out'].image(f,aggr + " " +title)
 
+  
+  #--------------------------------------------------------------------------------------
+  def getPngFileName(self,s) :
+    self.fileCounter += 1
+    n=str(s).translate(None,' /.,:;\[]()-*') + str(self.fileCounter) + '.png'
+    #n=str(s).translate(None,' \'/.,:;\[]()-*') + '.png'
+    logging.warning(n)
+    return(n)
   
   #--------------------------------------------------------------------------------------
   def graphBasicsNew(self,title,dgbase,dgList) :
@@ -66,27 +83,34 @@ class PandasProcessor() :
     dfm.plot(ax=axtwin,color='lightgrey',linestyle='--',legend=True,label='Count')
     axtwin.set_ylim(ymin=0)
     logging.debug("title " + title)
-    f=str(title).translate(None,' /.,:;\[]()-') + '.png'
+    f=self.getPngFileName(str(title))
     plt.savefig(f)
     plt.close()
     self.p['out'].image(f,title)
   
   
   #--------------------------------------------------------------------------------------
-  def myPlotBarResponseTime(self,datas,title,color='blue') :
+  def myPlotBar(self,datas,title) :
     if datas.empty :
       return
-    rtime=datas['ResponseTime']
-    plt.figure(figsize=(17,4))
-    rtime.plot.bar(title=title,rot=45,color=color)
-    f=title + '.png'
+    if datas.size > 10 :
+      return
+    logging.warning(datas)
+    plt.figure(figsize=(16,4))
+    fig, ax=plt.subplots(figsize=(16,4))
+
+    #datas.to_frame().sort_values().plot.bar(rot=45)
+    #plt.yticks(-np.arange(datas.size))
+    #ax.yaxis.set_tick_params(length=20,width=5)
+    datas.to_frame().plot.barh(ax=ax,color='lightgrey')
+    f=self.getPngFileName(title)
     plt.savefig(f)
     plt.close()
     self.p['out'].image(f,title)
   
   #--------------------------------------------------------------------------------------
-  def myGraphs(self,datas,title,describe=['Agent','PurePath']) :
-    logging.debug("graphing " + title)
+  def myGraphs(self,datas,title,describe=['Agent','PurePath','Application']) :
+    logging.warning("myGraphs " + title)
     if datas.empty :
       return
     self.p['out'].h3("Statistics and graph : " + title)
@@ -111,11 +135,12 @@ class PandasProcessor() :
   
   #--------------------------------------------------------------------------------------
   def groupByDescribe(self,datas,grps) :
-    logging.debug("groupByDescribe " + str(grps))
+    logging.warning("groupByDescribe " + str(grps))
     if datas.empty :
       return
     dg=datas.groupby(grps)['ResponseTime']
     self.p['out'].out("GroupBy " + str(grps) + " statistics" ,dg.describe(percentiles=self.percentiles))
+    self.myPlotBar(datas.groupby(grps)['ResponseTime'].count(),str(grps))
   
   #--------------------------------------------------------------------------------------
   def autofocus(self,datas) :
@@ -140,7 +165,7 @@ class PandasProcessor() :
   
     self.p['out'].h2("Analyzing transactions in status OK ")
     self.p['out'].out("File statistics",dfOK['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
-    self.myGraphs(dfOK, 'AllOk',["Agent"])
+    self.myGraphs(dfOK, 'AllOk',["Agent","Application"])
 
     self.p['out'].h2("Analyzing transactions in Error ")
     self.myGraphs(dfKO,'All Errors')

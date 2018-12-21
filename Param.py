@@ -37,6 +37,7 @@ class Param() :
       logging.basicConfig(format="%(asctime)s f=%(funcName)s %(levelname)s %(message)s", level=logging.DEBUG)
     else :
       logging.basicConfig(format="%(asctime)s f=%(funcName)s %(levelname)s %(message)s", level=logging.WARNING)
+    logging.warning("Logging initialized")
     if 'output' in self.p :
       if self.p['output'] ==  'html' :
         self.p['out']=OutputHtml()
