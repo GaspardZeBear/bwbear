@@ -50,7 +50,7 @@ def launch(
 
 #--------------------------------------------------------------------------------------
 if __name__ == '__main__':
-  logging.warning("Start")
+  #logging.warning("Start")
   launch()
-  logging.warning("End")
+  #logging.warning("End")
 

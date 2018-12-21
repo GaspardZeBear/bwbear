@@ -34,8 +34,8 @@ class PandasProcessor() :
 
   
   #--------------------------------------------------------------------------------------
-  def graphBasicsNew(self,id,dgbase,dgList) :
-    logging.debug("graphBasics aggr=" + id)
+  def graphBasicsNew(self,title,dgbase,dgList) :
+    logging.debug("graphBasics aggr=" + title)
     plt.figure(figsize=(16,4))
     fig, ax=plt.subplots(figsize=(16,4))
     fig.autofmt_xdate()
@@ -44,13 +44,12 @@ class PandasProcessor() :
     ax.set_title('fig.autofmt_xdate fixes the labels')
     ax.xaxis.set_major_formatter(mdates.DateFormatter(self.p['timeFormat']))
     ax.set_ylabel('Time ms', color='black')
-    title=id
     self.dfall.plot(rot=45,ax=ax,grid=True,linewidth=0)
     for dg in dgList : 
       style=self.param.getGraphStyle(dg['aggr'])
-      dg['dgaggr'].plot(title=dg['aggr'],rot=45,ax=ax,grid=True,color=style['color'],legend=True,label=dg['aggr'],linewidth=style['linewidth'])
+      dg['dgaggr'].plot(title=title,rot=45,ax=ax,grid=True,color=style['color'],legend=True,label=dg['aggr'],linewidth=style['linewidth'])
       if dg['dgaggr'].count() < 50 :
-        dg['dgaggr'].plot(title=dg['aggr'],rot=45,ax=ax,grid=True,legend=True,label=dg['aggr'],style=style['point'])
+        dg['dgaggr'].plot(title=title,rot=45,ax=ax,grid=True,legend=True,label=dg['aggr'],style=style['point'])
       if self.p['ymax'] > 0 :
         ax.set_ylim(ymin=0,ymax=self.p['ymax'])
       else :
@@ -94,7 +93,7 @@ class PandasProcessor() :
     dg=datas.groupby(self.p['timeGroupby'])['ResponseTime']
     for d in describe :
       self.groupByDescribe(datas,[d])
-    self.graphBasicsNew("Time vision", dg, [ 
+    self.graphBasicsNew("Time vision " + title, dg, [ 
       { 'aggr' : 'Max', 'dgaggr' : dg.max(), 'color' : 'red'},
       { 'aggr' : 'Mean', 'dgaggr' : dg.mean(), 'color' : 'green'},
       { 'aggr' : 'Q50', 'dgaggr' : dg.quantile(0.5), 'color' : 'green'},
