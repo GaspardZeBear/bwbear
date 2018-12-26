@@ -89,25 +89,31 @@ class PandasProcessor() :
     self.p['out'].image(f,title)
   
   
+
   #--------------------------------------------------------------------------------------
-  def myPlotBar(self,datas,title) :
+  def myPlotBar(self,datas,datasMean,title) :
     if datas.empty :
       return
-    if datas.size > 10 :
+    if datas.size > 20 or datas.size < 2 :
       return
     logging.warning(datas)
-    plt.figure(figsize=(16,4))
-    fig, ax=plt.subplots(figsize=(16,4))
+    df=datas.to_frame()
+    df.rename(columns={"ResponseTime":"Count"},inplace=True)
+    dfm=datasMean.to_frame()
+    dfm.rename(columns={"ResponseTime":"Mean"},inplace=True)
 
-    #datas.to_frame().sort_values().plot.bar(rot=45)
-    #plt.yticks(-np.arange(datas.size))
-    #ax.yaxis.set_tick_params(length=20,width=5)
-    datas.to_frame().plot.barh(ax=ax,color='lightgrey')
+    fig=plt.figure(figsize=(16,8))
+    ax=fig.add_subplot(121)
+    df.plot.barh(color='lightgrey',ax=ax)
+    axm=fig.add_subplot(122)
+    dfm.plot.barh(color='green',ax=axm)
+
     f=self.getPngFileName(title)
+    plt.tight_layout()
     plt.savefig(f)
     plt.close()
     self.p['out'].image(f,title)
-  
+
   #--------------------------------------------------------------------------------------
   def myGraphs(self,datas,title,describe=['Agent','PurePath','Application']) :
     logging.warning("myGraphs " + title)
@@ -140,7 +146,8 @@ class PandasProcessor() :
       return
     dg=datas.groupby(grps)['ResponseTime']
     self.p['out'].out("GroupBy " + str(grps) + " statistics" ,dg.describe(percentiles=self.percentiles))
-    self.myPlotBar(datas.groupby(grps)['ResponseTime'].count(),str(grps))
+    self.myPlotBar(datas.groupby(grps)['ResponseTime'].count(),dg.mean(),str(grps))
+    #self.myPlotBar(datas.groupby(grps)['ResponseTime'],str(grps))
   
   #--------------------------------------------------------------------------------------
   def autofocus(self,datas) :
@@ -166,7 +173,6 @@ class PandasProcessor() :
     self.p['out'].h2("Analyzing transactions in status OK ")
     self.p['out'].out("File statistics",dfOK['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
     self.myGraphs(dfOK, 'AllOk',["Agent","Application"])
-
     self.p['out'].h2("Analyzing transactions in Error ")
     self.myGraphs(dfKO,'All Errors')
   
