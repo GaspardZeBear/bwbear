@@ -102,7 +102,7 @@ class PandasProcessor() :
     dfm=datasMean.to_frame()
     dfm.rename(columns={"ResponseTime":"Mean"},inplace=True)
 
-    fig=plt.figure(figsize=(16,8))
+    fig=plt.figure(figsize=(16,4))
     ax=fig.add_subplot(121)
     df.plot.barh(color='lightgrey',ax=ax)
     axm=fig.add_subplot(122)
