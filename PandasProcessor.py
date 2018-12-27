@@ -19,17 +19,9 @@ class PandasProcessor() :
     self.ppregexclude=self.p['ppregexclude']
     self.timeregex=self.p['timeregex']
     self.percentiles=[.50,.95,.99]
-    self.filenoGen=self.fileno(1000)
     self.fileCounter=0
     pd.options.display.float_format = '{:.0f}'.format
     self.go()
-
-
-
-  #--------------------------------------------------------------------------------------
-  def fileno(self,n) :
-    for i in range(n) :
-      yield i+1
 
   #--------------------------------------------------------------------------------------
   def getPngFileName(self,s) :
@@ -84,8 +76,8 @@ class PandasProcessor() :
     dm=datas.mean() 
     if dc.empty :
       return
-    #if dc.size > 20 or dc.size < 2 :
-    #  return
+    if dc.size > 100 :
+      return
     logging.warning(datas)
     df=dc.to_frame()
     df.rename(columns={"ResponseTime":"Count"},inplace=True)
@@ -181,6 +173,7 @@ class PandasProcessor() :
   
   #--------------------------------------------------------------------------------------
   def filter(self,rawdatas) :
+    sizein=len(rawdatas)
     if len(self.ppregex) > 0 :
       rawdatas=rawdatas[rawdatas['PurePath'].apply(self.regexFilter)]
     if len(self.ppregexclude) > 0 :
@@ -188,11 +181,14 @@ class PandasProcessor() :
     if len(self.timeregex) > 0 :
       logging.warning("Apply timeregex filter")
       rawdatas=rawdatas[rawdatas['StartTimeStr'].apply(self.timeregexFilter)]
+    self.filtered=sizein - len(rawdatas.index)
     return(rawdatas)
 
   #--------------------------------------------------------------------------------------
   def detailsOnProcess(self) :
     self.p['out'].h1("Analyzing file " + self.DFF.getInfos('Datafile'))
+    self.p['out'].h2("Formatfile details ")
+    self.p['out'].p(str(self.DFF.getInfos('json')))
     self.p['out'].h2("Param informations")
     self.p['out'].p(self.param.getAllAsString())
     self.p['out'].h2("Stats informations")
@@ -213,7 +209,7 @@ class PandasProcessor() :
     self.p['out'].out("Initial tail",self.DFF.getInfos('TailInitial'))
     if self.DFF.isWrangled() :
       self.p['out'].out("Final tail",self.DFF.getInfos('TailFinal'))
-    self.p['out'].out("Initial file",self.DFF.getInfos('DescribeInitial'))
+    #self.p['out'].out("Initial file",self.DFF.getInfos('DescribeInitial'))
     if self.DFF.isWrangled() :
       self.p['out'].out("Final file",self.DFF.getInfos('DescribeFinal'))
 
@@ -236,12 +232,12 @@ class PandasProcessor() :
 
     self.detailsOnProcess()
 
-    self.p['out'].h2("Analyzing transactions in status OK (may be filtered) ")
+    self.p['out'].h2("Analyzing " + str(len(self.dfOK)) + " transactions in status OK (" + str(self.filtered) + " have been filtered) ")
     self.myGraphs(self.dfOK, 'AllOk',["Agent","Application"])
     self.p['out'].h2("Analyzing transactions in Error ")
     self.myGraphs(self.dfKO,'All Errors')
   
-    self.p['out'].h2("Analyzing focused transactions")
+    self.p['out'].h2("Analyzing " + str(len(self.dfFocus)) + " focused transactions")
     self.myGraphs(self.dfFocus,'Focus')
     #for pp in self.dfOK['PurePath'].unique() :
     for pp in self.DFF.getFocusedPurepaths() :

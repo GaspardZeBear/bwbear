@@ -29,15 +29,16 @@ class DFFormatter() :
     self.infos['HeadFinal']=None
     self.wrangle=False
     with open(self.fconf, 'r') as j:
-      json_data = json.load(j)
-      self.coalesce=json_data['COALESCE']
+      self.json = json.load(j)
+      self.infos['json']=self.json
+      self.coalesce=self.json['COALESCE']
       self.autofocus=[]
-      self.focus=json_data['FOCUS']
-      self.ppalias=json_data['PPALIAS']
-      self.dropcolumns=json_data['DROPCOLUMNS']
-      self.droprows=json_data['DROPROWS']
-      self.renamecolumns=json_data['RENAMECOLUMNS']
-      logging.warning(json_data)
+      self.focus=self.json['FOCUS']
+      self.ppalias=self.json['PPALIAS']
+      self.dropcolumns=self.json['DROPCOLUMNS']
+      self.droprows=self.json['DROPROWS']
+      self.renamecolumns=self.json['RENAMECOLUMNS']
+      logging.warning(self.json)
 
     self.df=None
     pd.set_option("display.max_rows",None)
