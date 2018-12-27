@@ -89,30 +89,39 @@ class PandasProcessor() :
     self.p['out'].image(f,title)
   
   
-
   #--------------------------------------------------------------------------------------
-  def myPlotBar(self,datas,datasMean,title) :
-    if datas.empty :
+  def myPlotBar(self,datas,title) :
+    dc=datas.count() 
+    dm=datas.mean() 
+    if dc.empty :
       return
-    if datas.size > 20 or datas.size < 2 :
-      return
+    #if dc.size > 20 or dc.size < 2 :
+    #  return
     logging.warning(datas)
-    df=datas.to_frame()
+    df=dc.to_frame()
     df.rename(columns={"ResponseTime":"Count"},inplace=True)
-    dfm=datasMean.to_frame()
+    dfm=dm.to_frame()
     dfm.rename(columns={"ResponseTime":"Mean"},inplace=True)
 
-    fig=plt.figure(figsize=(16,4))
+    figYSize=int(dc.size/4) + 1
+
+    fig=plt.figure(figsize=(16,figYSize))
     ax=fig.add_subplot(121)
-    df.plot.barh(color='lightgrey',ax=ax)
+    df.plot.barh(color='lightgrey',ax=ax,grid=True)
+    ax.minorticks_on()
+    ax.xaxis.grid(True, which='minor', linestyle='-', linewidth=0.25)
     axm=fig.add_subplot(122)
-    dfm.plot.barh(color='green',ax=axm)
+    dfm.plot.barh(color='green',ax=axm,grid=True)
+    axm.minorticks_on()
+    axm.xaxis.grid(True, which='minor', linestyle='-', linewidth=0.25)
+    axm.get_yaxis().set_ticks([])
 
     f=self.getPngFileName(title)
     plt.tight_layout()
     plt.savefig(f)
     plt.close()
     self.p['out'].image(f,title)
+
 
   #--------------------------------------------------------------------------------------
   def myGraphs(self,datas,title,describe=['Agent','PurePath','Application']) :
@@ -146,8 +155,7 @@ class PandasProcessor() :
       return
     dg=datas.groupby(grps)['ResponseTime']
     self.p['out'].out("GroupBy " + str(grps) + " statistics" ,dg.describe(percentiles=self.percentiles))
-    self.myPlotBar(datas.groupby(grps)['ResponseTime'].count(),dg.mean(),str(grps))
-    #self.myPlotBar(datas.groupby(grps)['ResponseTime'],str(grps))
+    self.myPlotBar(datas.groupby(grps)['ResponseTime'],str(grps))
   
   #--------------------------------------------------------------------------------------
   def autofocus(self,datas) :

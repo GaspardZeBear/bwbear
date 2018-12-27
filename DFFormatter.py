@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import logging
 import json
+import re
 from Outer import *
 
 
@@ -20,6 +21,7 @@ class DFFormatter() :
     self.fconf=p['formatfile']
     self.out=p['out']
     self.decimal=p['decimal']
+    self.ppregex=p['ppregex']
     with open(self.fconf, 'r') as j:
       json_data = json.load(j)
       self.coalesce=json_data['COALESCE']
@@ -39,6 +41,18 @@ class DFFormatter() :
     else :
       self.getRawdatas(True)
     logging.warning("DFFormatter ends")
+
+  #--------------------------------------------------------------------------------------
+  def regexFilter(self,val):
+    if val:
+        mo = re.search(self.ppregex,val)
+        if mo:
+            return True
+        else:
+            return False
+    else:
+        return False
+
 
   #--------------------------------------------------------------------------------------
   def getDf(self) :
@@ -105,6 +119,7 @@ class DFFormatter() :
       rawdatas['PurePath']=rawdatas['PurePath'].map(self.renamePP)
       rawdatas['ts1m']=rawdatas.apply(lambda x: x['StartTime'].floor('1min'),axis=1)
       rawdatas['ts10m']=rawdatas.apply(lambda x: x['StartTime'].floor('10min'),axis=1)
+      rawdatas['ts1h']=rawdatas.apply(lambda x: x['StartTime'].floor('1h'),axis=1)
       rawdatas['Error']=rawdatas.apply(lambda x: 0 if x['ErrorState'] == 'OK' else 1,axis=1)
       rawdatas.to_csv(self.file + '.pan',sep=';',index=False)
       self.out.out("File header and PP name reformatted",rawdatas.head())
@@ -112,6 +127,10 @@ class DFFormatter() :
       rawdatas['StartTime']=pd.to_datetime(rawdatas['StartTime'],infer_datetime_format=True)
       rawdatas['ts1m']=pd.to_datetime(rawdatas['ts1m'],infer_datetime_format=True)
       rawdatas['ts10m']=pd.to_datetime(rawdatas['ts10m'],infer_datetime_format=True)
+    if len(self.ppregex) > 0 :
+      self.out.out("File statistics",rawdatas['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
+      rawdatas=rawdatas[rawdatas['PurePath'].apply(self.regexFilter)]
+      self.out.p("PurePath filter by " + self.ppregex)
     logging.warning(rawdatas.dtypes)
     self.out.out("File TAIL",rawdatas.tail())
     #self.out.out("Infos",rawdatas.info())
