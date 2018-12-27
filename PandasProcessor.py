@@ -15,6 +15,7 @@ class PandasProcessor() :
     self.param.processParam()
     self.p=self.param.getAll()
     self.quick=self.p['quick']
+    self.nodescribe=self.p['nodescribe']
     self.ppregex=self.p['ppregex']
     self.ppregexclude=self.p['ppregexclude']
     self.timeregex=self.p['timeregex']
@@ -146,7 +147,7 @@ class PandasProcessor() :
     self.p['out'].h3("Statistics and graph : " + title)
     dg=datas.groupby(self.p['timeGroupby'])['ResponseTime']
     for d in describe :
-      self.groupByDescribe(datas,[d])
+      self.groupByDescribe(datas,[d],title)
     self.graphBasicsNew("Time vision " + title, dg, [ 
       { 'aggr' : 'Max', 'dgaggr' : dg.max(), 'color' : 'red'},
       { 'aggr' : 'Mean', 'dgaggr' : dg.mean(), 'color' : 'green'},
@@ -155,13 +156,15 @@ class PandasProcessor() :
       ])
   
   #--------------------------------------------------------------------------------------
-  def groupByDescribe(self,datas,grps) :
+  def groupByDescribe(self,datas,grps,title='') :
     logging.warning("groupByDescribe " + str(grps))
+    if self.nodescribe :
+      return
     if datas.empty :
       return
     dg=datas.groupby(grps)['ResponseTime']
-    self.p['out'].out("GroupBy " + str(grps) + " statistics" ,dg.describe(percentiles=self.percentiles))
-    self.myPlotBar(datas.groupby(grps)['ResponseTime'],str(grps))
+    self.p['out'].out("GroupBy "  +  str(grps) + " " + title + " statistics" ,dg.describe(percentiles=self.percentiles))
+    self.myPlotBar(datas.groupby(grps)['ResponseTime'],str(grps) + " " + title)
   
   #--------------------------------------------------------------------------------------
   def autofocus(self,datas) :
@@ -197,7 +200,7 @@ class PandasProcessor() :
        "OK"    : self.dfOK['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame(),
        "KO"    : self.dfKO['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame(),
        "Focus" : self.dfFocus['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame(),
-       "HighRespTime" : self.dfOK[ ( self.dfOK['ResponseTime'] > self.p['highResponseTime'] )]['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame()
+       "HighRespTime" : self.dfHigh['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame()
     }
     self.p['out'].tables(ths)
     if self.quick :
@@ -229,26 +232,29 @@ class PandasProcessor() :
     self.dfall=pd.DataFrame(self.dfOK.groupby(self.p['timeGroupby'])['StartTime'].count().apply(lambda x: 0))
     self.DFF.setAutofocus(self.autofocus(self.dfOK))
     self.dfFocus=self.dfOK[ self.dfOK['PurePath'].isin( self.DFF.getFocusedPurepaths()) ]
+    self.dfHigh=self.dfOK[ ( self.dfOK['ResponseTime'] > self.p['highResponseTime'] ) ]
 
     self.detailsOnProcess()
 
     self.p['out'].h2("Analyzing " + str(len(self.dfOK)) + " transactions in status OK (" + str(self.filtered) + " have been filtered) ")
-    self.myGraphs(self.dfOK, 'AllOk',["Agent","Application"])
+    self.myGraphs(self.dfOK, 'OK',["Agent","Application"])
     self.p['out'].h2("Analyzing transactions in Error ")
-    self.myGraphs(self.dfKO,'All Errors')
+    self.myGraphs(self.dfKO,'Errors')
   
     self.p['out'].h2("Analyzing " + str(len(self.dfFocus)) + " focused transactions")
     self.myGraphs(self.dfFocus,'Focus')
     #for pp in self.dfOK['PurePath'].unique() :
     for pp in self.DFF.getFocusedPurepaths() :
-      self.myGraphs(self.dfOK[self.dfOK['PurePath'] == pp], pp)
+      self.myGraphs(self.dfOK[self.dfOK['PurePath'] == pp], 'Focus ' + pp)
   
     self.p['out'].h2("Analyzing transactions with response time > " + str(self.p['highResponseTime']) )
     self.p['out'].h3("Statistics")
-    self.groupByDescribe(self.dfOK[ ( self.dfOK['ResponseTime'] > self.p['highResponseTime'] ) ],["PurePath"])
-    self.myGraphs(self.dfOK[ ( self.dfOK['ResponseTime'] > self.p['highResponseTime'] ) ],'HighResponseTime')
+    self.groupByDescribe(self.dfOK[ ( self.dfOK['ResponseTime'] > self.p['highResponseTime'] ) ],["PurePath"],'HighResponseTime')
+    self.myGraphs(self.dfHigh,'HighResponseTime')
     if not self.quick :
-      self.p['out'].out("Samples OK having high resp time ",self.dfOK[ ( self.dfOK['ResponseTime'] > self.p['highResponseTime'] ) ])
+      for pp in self.dfHigh['PurePath'].unique() :
+        self.myGraphs(self.dfHigh[self.dfHigh['PurePath'] == pp], 'HighResponseTime ' + pp)
+      self.p['out'].out("Samples OK having high resp time ",self.dfHigh)
   
     if not self.quick :
       self.p['out'].h2("Detail of transactions in error state")
@@ -256,7 +262,7 @@ class PandasProcessor() :
 
     if not self.quick :
       self.p['out'].h2("More details on transactions OK")
-      self.myGraphs(self.dfOK, 'AllOk')
+      self.myGraphs(self.dfOK, 'OK')
 
     #self.p['out'].out("Rawdatas detail",self.dfOK)
     logging.warning("End")

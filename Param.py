@@ -45,6 +45,8 @@ class Param() :
     logging.warning("Logging initialized")
     if 'quick' not in self.p :
       self.p['quick'] = False
+    if 'nodescribe' not in self.p :
+      self.p['nodescribe'] = False
     if 'output' in self.p :
       if self.p['output'] ==  'html' :
         self.p['out']=OutputHtml()
