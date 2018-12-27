@@ -17,6 +17,7 @@ import click
 @click.option('--autofocuscount', default=30)
 @click.option('--ymax', default=0)
 @click.option('--ppregex', default='')
+@click.option('--timeregex', default='')
 @click.option('--ppregexclude', default='')
 @click.option('--pandas', default='Pandas')
 @click.option('--verbose', is_flag=True, default=False)
@@ -33,6 +34,7 @@ def launch(
   autofocuscount,
   ymax,
   ppregex,
+  timeregex,
   ppregexclude,
   pandas,
   verbose
@@ -48,6 +50,7 @@ def launch(
   p.set('decimal',decimal)
   p.set('ymax',ymax)
   p.set('ppregex',ppregex)
+  p.set('timeregex',timeregex)
   p.set('ppregexclude',ppregexclude)
   p.set('timeGroupby',timegroupby)
   p.set('autofocusmean',autofocusmean)

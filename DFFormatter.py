@@ -27,6 +27,7 @@ class DFFormatter() :
     self.infos['DescribeFinal']=None
     self.infos['HeadInitial']=None
     self.infos['HeadFinal']=None
+    self.wrangle=False
     with open(self.fconf, 'r') as j:
       json_data = json.load(j)
       self.coalesce=json_data['COALESCE']
@@ -50,6 +51,10 @@ class DFFormatter() :
   #--------------------------------------------------------------------------------------
   def getDf(self) :
     return(self.df)
+
+  #--------------------------------------------------------------------------------------
+  def isWrangled(self) :
+    return(self.wrangle)
 
   #--------------------------------------------------------------------------------------
   def getInfos(self,info) :
@@ -96,6 +101,7 @@ class DFFormatter() :
     self.infos['TailInitial']=rawdatas.tail(2)
     
     if wrangle :
+      self.wrangle=True
       logging.warning("Wrangling file " + self.file)
       logging.warning("dropcolumns " + str(self.dropcolumns))
       rawdatas.drop (
@@ -110,6 +116,7 @@ class DFFormatter() :
         rawdatas=rawdatas[rawdatas.PurePath.str.contains(pp)==False]
       logging.warning(rawdatas.head())
       rawdatas['PurePath']=rawdatas['PurePath'].map(self.coalesceUrl)
+      rawdatas['StartTimeStr']=rawdatas['StartTime']
       rawdatas['StartTime']=pd.to_datetime(rawdatas['StartTime'],infer_datetime_format=True)
       rawdatas['PurePath']=rawdatas['PurePath'].map(self.renamePP)
       rawdatas['ts1m']=rawdatas.apply(lambda x: x['StartTime'].floor('1min'),axis=1)

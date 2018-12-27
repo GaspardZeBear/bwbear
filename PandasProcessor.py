@@ -16,6 +16,7 @@ class PandasProcessor() :
     self.p=self.param.getAll()
     self.ppregex=self.p['ppregex']
     self.ppregexclude=self.p['ppregexclude']
+    self.timeregex=self.p['timeregex']
     self.percentiles=[.50,.95,.99]
     self.filenoGen=self.fileno(1000)
     self.fileCounter=0
@@ -30,7 +31,7 @@ class PandasProcessor() :
       yield i+1
 
   #--------------------------------------------------------------------------------------
-  def graphAggregated(self,aggr,dgAggr,title,color='blue') :
+  def XgraphAggregated(self,aggr,dgAggr,title,color='blue') :
     plt.figure(figsize=(16,4))
     fig, ax=plt.subplots(figsize=(16,4))
     fig.autofmt_xdate()
@@ -82,7 +83,7 @@ class PandasProcessor() :
     dfm.drop('StartTime',axis=1,inplace=True)
     dfm.fillna(value=0,inplace=True)
   
-    dfm.plot(ax=axtwin,color='lightgrey',linestyle='--',legend=True,label='Count')
+    dfm.plot(ax=axtwin,color='lightgrey',linestyle='--',legend=False,label='Count')
     axtwin.set_ylim(ymin=0)
     logging.debug("title " + title)
     f=self.getPngFileName(str(title))
@@ -123,6 +124,17 @@ class PandasProcessor() :
     plt.savefig(f)
     plt.close()
     self.p['out'].image(f,title)
+
+  #--------------------------------------------------------------------------------------
+  def timeregexFilter(self,val):
+    if val:
+        mo = re.search(self.timeregex,val)
+        if mo:
+            return True
+        else:
+            return False
+    else:
+        return False
 
 
   #--------------------------------------------------------------------------------------
@@ -165,7 +177,7 @@ class PandasProcessor() :
       ])
   
   #--------------------------------------------------------------------------------------
-  def myGraphsErrors(self,datas,title,color='red') :
+  def XmyGraphsErrors(self,datas,title,color='red') :
     if datas.empty :
       return
     dg=datas.groupby(self.p['timeGroupby'])['Error']
@@ -191,16 +203,29 @@ class PandasProcessor() :
     return(dg1["PurePath_"].values.tolist())
   
   #--------------------------------------------------------------------------------------
+  def filter(self,rawdatas) :
+
+    if len(self.ppregex) > 0 :
+      rawdatas=rawdatas[rawdatas['PurePath'].apply(self.regexFilter)]
+    if len(self.ppregexclude) > 0 :
+      rawdatas=rawdatas[rawdatas['PurePath'].apply(self.regexcludeFilter)]
+    if len(self.timeregex) > 0 :
+      logging.warning("Apply timeregex filter")
+      rawdatas=rawdatas[rawdatas['StartTimeStr'].apply(self.timeregexFilter)]
+    return(rawdatas)
+  
+  #--------------------------------------------------------------------------------------
   def go(self) :
     logging.warning("Start")
     DFF=DFFormatter(self.p)
     rawdatas=DFF.getDf()
     logging.debug(rawdatas)
 
-    if len(self.ppregex) > 0 :
-      rawdatas=rawdatas[rawdatas['PurePath'].apply(self.regexFilter)]
-    if len(self.ppregexclude) > 0 :
-      rawdatas=rawdatas[rawdatas['PurePath'].apply(self.regexcludeFilter)]
+    #if len(self.ppregex) > 0 :
+    #  rawdatas=rawdatas[rawdatas['PurePath'].apply(self.regexFilter)]
+    #if len(self.ppregexclude) > 0 :
+    #  rawdatas=rawdatas[rawdatas['PurePath'].apply(self.regexcludeFilter)]
+    rawdatas=self.filter(rawdatas)
 
     dfOK=rawdatas[ ( rawdatas['ErrorState'] == 'OK' ) ]
     dfKO=rawdatas[ ( rawdatas['ErrorState'] != 'OK') ]
@@ -210,13 +235,18 @@ class PandasProcessor() :
 
     self.p['out'].h1("Analyzing file " + DFF.getInfos('Datafile'))
 
+    self.p['out'].h2("Param informations")
+    self.p['out'].p(self.param.getAllAsString())
     self.p['out'].h2("File informations")
     self.p['out'].out("Initial head",DFF.getInfos('HeadInitial'))
-    self.p['out'].out("Final head",DFF.getInfos('HeadFinal'))
+    if DFF.isWrangled() :
+      self.p['out'].out("Final head",DFF.getInfos('HeadFinal'))
     self.p['out'].out("Initial tail",DFF.getInfos('TailInitial'))
-    self.p['out'].out("Final tail",DFF.getInfos('TailFinal'))
+    if DFF.isWrangled() :
+      self.p['out'].out("Final tail",DFF.getInfos('TailFinal'))
     self.p['out'].out("Initial file",DFF.getInfos('DescribeInitial'))
-    self.p['out'].out("Final file",DFF.getInfos('DescribeFinal'))
+    if DFF.isWrangled() :
+      self.p['out'].out("Final file",DFF.getInfos('DescribeFinal'))
   
     self.p['out'].h2("Analyzing transactions in status OK ")
     self.p['out'].out("File statistics",dfOK['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
@@ -225,9 +255,9 @@ class PandasProcessor() :
     self.myGraphs(dfKO,'All Errors')
   
     self.p['out'].h2("Analyzing focused transactions")
-    self.p['out'].h3("Focus details")
-    self.p['out'].p("--autofocusmean : " + str(self.p['autofocusmean']))
-    self.p['out'].p("--autofocuscount : " + str(self.p['autofocuscount']))
+    #self.p['out'].h3("Focus details")
+    #self.p['out'].p("--autofocusmean : " + str(self.p['autofocusmean']))
+    #self.p['out'].p("--autofocuscount : " + str(self.p['autofocuscount']))
     self.p['out'].out("File statistics",dfFocus['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
     self.myGraphs(dfFocus,'Focus')
     #for pp in dfOK['PurePath'].unique() :

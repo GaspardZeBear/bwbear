@@ -12,7 +12,6 @@ class Param() :
     "Max" : { "color": "red", "linewidth" :0.2 , "point" : "ro"},
     "default" : { "color": "black", "linewidth" :1 , "point" : "go"}
   }
-    
 
   def __init__(self) :
     self.p={}
@@ -31,6 +30,12 @@ class Param() :
 
   def getAll(self) :
     return(self.p)
+
+  def getAllAsString(self) :
+    s=''
+    for k in self.p :
+      s += " --" + k + " " + str(self.p[k])
+    return(s)
 
   def processParam(self) :
     if 'verbose' in self.p and self.p['verbose'] :
@@ -62,6 +67,8 @@ class Param() :
       self.p['autofocuscount']=30
     if 'ppregex' not in self.p :
       self.p['ppregex']=''
+    if 'timeregex' not in self.p :
+      self.p['timeregex']=''
     if 'ppregexclude' not in self.p :
       self.p['ppregexclude']=''
 
