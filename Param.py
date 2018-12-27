@@ -62,5 +62,7 @@ class Param() :
       self.p['autofocuscount']=30
     if 'ppregex' not in self.p :
       self.p['ppregex']=''
+    if 'ppregexclude' not in self.p :
+      self.p['ppregexclude']=''
 
 

@@ -22,6 +22,7 @@ class DFFormatter() :
     self.out=p['out']
     self.decimal=p['decimal']
     self.ppregex=p['ppregex']
+    self.ppregexclude=p['ppregexclude']
     with open(self.fconf, 'r') as j:
       json_data = json.load(j)
       self.coalesce=json_data['COALESCE']
@@ -53,6 +54,16 @@ class DFFormatter() :
     else:
         return False
 
+  #--------------------------------------------------------------------------------------
+  def regexcludeFilter(self,val):
+    if val:
+        mo = re.search(self.ppregexclude,val)
+        if mo:
+            return False
+        else:
+            return True
+    else:
+        return False
 
   #--------------------------------------------------------------------------------------
   def getDf(self) :
@@ -133,9 +144,10 @@ class DFFormatter() :
       rawdatas['ts1h']=pd.to_datetime(rawdatas['ts1h'],infer_datetime_format=True)
     if len(self.ppregex) > 0 :
       rawdatas=rawdatas[rawdatas['PurePath'].apply(self.regexFilter)]
-      self.out.out("Dataframe TAIL",rawdatas.tail(2))
       self.out.out("Dataframe statistics after ppregex " + self.ppregex,rawdatas['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
-    else : 
-      self.out.out("Dataframe TAIL",rawdatas.tail(2))
-      self.out.out("Dataframe statistics",rawdatas['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
+    if len(self.ppregexclude) > 0 :
+      rawdatas=rawdatas[rawdatas['PurePath'].apply(self.regexcludeFilter)]
+      self.out.out("Dataframe statistics after ppregexclude " + self.ppregexclude,rawdatas['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
+    self.out.out("Dataframe TAIL",rawdatas.tail(2))
+    self.out.out("Dataframe statistics",rawdatas['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
     self.df=rawdatas
