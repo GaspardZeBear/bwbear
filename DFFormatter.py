@@ -21,8 +21,12 @@ class DFFormatter() :
     self.fconf=p['formatfile']
     self.out=p['out']
     self.decimal=p['decimal']
-    self.ppregex=p['ppregex']
-    self.ppregexclude=p['ppregexclude']
+    self.infos=dict()
+    self.infos['Datafile']=self.file
+    self.infos['DescribeInitial']=None
+    self.infos['DescribeFinal']=None
+    self.infos['HeadInitial']=None
+    self.infos['HeadFinal']=None
     with open(self.fconf, 'r') as j:
       json_data = json.load(j)
       self.coalesce=json_data['COALESCE']
@@ -44,30 +48,14 @@ class DFFormatter() :
     logging.warning("DFFormatter ends")
 
   #--------------------------------------------------------------------------------------
-  def regexFilter(self,val):
-    if val:
-        mo = re.search(self.ppregex,val)
-        if mo:
-            return True
-        else:
-            return False
-    else:
-        return False
-
-  #--------------------------------------------------------------------------------------
-  def regexcludeFilter(self,val):
-    if val:
-        mo = re.search(self.ppregexclude,val)
-        if mo:
-            return False
-        else:
-            return True
-    else:
-        return False
-
-  #--------------------------------------------------------------------------------------
   def getDf(self) :
     return(self.df)
+
+  #--------------------------------------------------------------------------------------
+  def getInfos(self,info) :
+    if info in self.infos :
+      return(self.infos[info])
+    return
 
   #--------------------------------------------------------------------------------------
   def getFocusedPurepaths(self) :
@@ -94,9 +82,7 @@ class DFFormatter() :
           return("*"+pat)
     return(u)
 
-
-
-#--------------------------------------------------------------------------------------
+  #--------------------------------------------------------------------------------------
   def renamePP(self,u) :
     if ( u in self.ppalias ) :
       return(self.ppalias[u])
@@ -105,12 +91,9 @@ class DFFormatter() :
 
 #--------------------------------------------------------------------------------------
   def getRawdatas(self,wrangle=True) :
-    #pd.set_option("display.max_rows",None)
-    #pd.set_option("display.max_rows",10)
-    self.out.h1("Analyzing file " + self.file)
-    self.out.h2("Raw datas")
     rawdatas=pd.read_csv(self.file,sep=';',decimal=self.decimal)
-    self.out.out("File HEAD",rawdatas.head(2))
+    self.infos['HeadInitial']=rawdatas.head(2)
+    self.infos['TailInitial']=rawdatas.tail(2)
     
     if wrangle :
       logging.warning("Wrangling file " + self.file)
@@ -122,7 +105,7 @@ class DFFormatter() :
       logging.warning("renamecolumns " + str(self.renamecolumns))
       rawdatas.rename (self.renamecolumns,
         inplace=True,axis=1)
-      self.out.out("File statistics before wrangle",rawdatas['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
+      self.infos['DescribeInitial']=rawdatas['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame()
       for pp in self.droprows :
         rawdatas=rawdatas[rawdatas.PurePath.str.contains(pp)==False]
       logging.warning(rawdatas.head())
@@ -134,20 +117,13 @@ class DFFormatter() :
       rawdatas['ts1h']=rawdatas.apply(lambda x: x['StartTime'].floor('1h'),axis=1)
       rawdatas['Error']=rawdatas.apply(lambda x: 0 if x['ErrorState'] == 'OK' else 1,axis=1)
       rawdatas.to_csv(self.file + '.pan',sep=';',index=False)
-      self.out.out("File header and PP name reformatted",rawdatas.head())
-      self.out.out("File statistics after wrangle",rawdatas['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
     else :
-      self.out.out("File statistics of .pan file",rawdatas['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
+      self.infos['DescribeInitial']=rawdatas['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame()
       rawdatas['StartTime']=pd.to_datetime(rawdatas['StartTime'],infer_datetime_format=True)
       rawdatas['ts1m']=pd.to_datetime(rawdatas['ts1m'],infer_datetime_format=True)
       rawdatas['ts10m']=pd.to_datetime(rawdatas['ts10m'],infer_datetime_format=True)
       rawdatas['ts1h']=pd.to_datetime(rawdatas['ts1h'],infer_datetime_format=True)
-    if len(self.ppregex) > 0 :
-      rawdatas=rawdatas[rawdatas['PurePath'].apply(self.regexFilter)]
-      self.out.out("Dataframe statistics after ppregex " + self.ppregex,rawdatas['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
-    if len(self.ppregexclude) > 0 :
-      rawdatas=rawdatas[rawdatas['PurePath'].apply(self.regexcludeFilter)]
-      self.out.out("Dataframe statistics after ppregexclude " + self.ppregexclude,rawdatas['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
-    self.out.out("Dataframe TAIL",rawdatas.tail(2))
-    self.out.out("Dataframe statistics",rawdatas['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
+    self.infos['DescribeFinal']=rawdatas['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame()
+    self.infos['HeadFinal']=rawdatas.head(2)
+    self.infos['TailFinal']=rawdatas.tail(2)
     self.df=rawdatas

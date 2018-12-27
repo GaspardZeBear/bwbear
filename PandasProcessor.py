@@ -14,6 +14,8 @@ class PandasProcessor() :
     self.param=param
     self.param.processParam()
     self.p=self.param.getAll()
+    self.ppregex=self.p['ppregex']
+    self.ppregexclude=self.p['ppregexclude']
     self.percentiles=[.50,.95,.99]
     self.filenoGen=self.fileno(1000)
     self.fileCounter=0
@@ -124,6 +126,29 @@ class PandasProcessor() :
 
 
   #--------------------------------------------------------------------------------------
+  def regexFilter(self,val):
+    if val:
+        mo = re.search(self.ppregex,val)
+        if mo:
+            return True
+        else:
+            return False
+    else:
+        return False
+
+  #--------------------------------------------------------------------------------------
+  def regexcludeFilter(self,val):
+    if val:
+        mo = re.search(self.ppregexclude,val)
+        if mo:
+            return False
+        else:
+            return True
+    else:
+        return False
+
+
+  #--------------------------------------------------------------------------------------
   def myGraphs(self,datas,title,describe=['Agent','PurePath','Application']) :
     logging.warning("myGraphs " + title)
     if datas.empty :
@@ -169,14 +194,29 @@ class PandasProcessor() :
   def go(self) :
     logging.warning("Start")
     DFF=DFFormatter(self.p)
-    rawDatas=DFF.getDf()
-    logging.debug(rawDatas)
-    
-    dfOK=rawDatas[ ( rawDatas['ErrorState'] == 'OK' ) ]
-    dfKO=rawDatas[ ( rawDatas['ErrorState'] != 'OK') ]
+    rawdatas=DFF.getDf()
+    logging.debug(rawdatas)
+
+    if len(self.ppregex) > 0 :
+      rawdatas=rawdatas[rawdatas['PurePath'].apply(self.regexFilter)]
+    if len(self.ppregexclude) > 0 :
+      rawdatas=rawdatas[rawdatas['PurePath'].apply(self.regexcludeFilter)]
+
+    dfOK=rawdatas[ ( rawdatas['ErrorState'] == 'OK' ) ]
+    dfKO=rawdatas[ ( rawdatas['ErrorState'] != 'OK') ]
     self.dfall=pd.DataFrame(dfOK.groupby(self.p['timeGroupby'])['StartTime'].count().apply(lambda x: 0))
     DFF.setAutofocus(self.autofocus(dfOK))
     dfFocus=dfOK[ dfOK['PurePath'].isin( DFF.getFocusedPurepaths()) ]
+
+    self.p['out'].h1("Analyzing file " + DFF.getInfos('Datafile'))
+
+    self.p['out'].h2("File informations")
+    self.p['out'].out("Initial head",DFF.getInfos('HeadInitial'))
+    self.p['out'].out("Final head",DFF.getInfos('HeadFinal'))
+    self.p['out'].out("Initial tail",DFF.getInfos('TailInitial'))
+    self.p['out'].out("Final tail",DFF.getInfos('TailFinal'))
+    self.p['out'].out("Initial file",DFF.getInfos('DescribeInitial'))
+    self.p['out'].out("Final file",DFF.getInfos('DescribeFinal'))
   
     self.p['out'].h2("Analyzing transactions in status OK ")
     self.p['out'].out("File statistics",dfOK['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
@@ -185,14 +225,11 @@ class PandasProcessor() :
     self.myGraphs(dfKO,'All Errors')
   
     self.p['out'].h2("Analyzing focused transactions")
-
     self.p['out'].h3("Focus details")
     self.p['out'].p("--autofocusmean : " + str(self.p['autofocusmean']))
     self.p['out'].p("--autofocuscount : " + str(self.p['autofocuscount']))
-
     self.p['out'].out("File statistics",dfFocus['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
     self.myGraphs(dfFocus,'Focus')
-  
     #for pp in dfOK['PurePath'].unique() :
     for pp in DFF.getFocusedPurepaths() :
       self.myGraphs(dfOK[dfOK['PurePath'] == pp], pp)
