@@ -99,7 +99,7 @@ class DFFormatter() :
     self.out.h1("Analyzing file " + self.file)
     self.out.h2("Raw datas")
     rawdatas=pd.read_csv(self.file,sep=';',decimal=self.decimal)
-    self.out.out("File HEAD",rawdatas.head())
+    self.out.out("File HEAD",rawdatas.head(2))
     
     if wrangle :
       logging.warning("Wrangling file " + self.file)
@@ -111,6 +111,7 @@ class DFFormatter() :
       logging.warning("renamecolumns " + str(self.renamecolumns))
       rawdatas.rename (self.renamecolumns,
         inplace=True,axis=1)
+      self.out.out("File statistics before wrangle",rawdatas['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
       for pp in self.droprows :
         rawdatas=rawdatas[rawdatas.PurePath.str.contains(pp)==False]
       logging.warning(rawdatas.head())
@@ -123,16 +124,18 @@ class DFFormatter() :
       rawdatas['Error']=rawdatas.apply(lambda x: 0 if x['ErrorState'] == 'OK' else 1,axis=1)
       rawdatas.to_csv(self.file + '.pan',sep=';',index=False)
       self.out.out("File header and PP name reformatted",rawdatas.head())
+      self.out.out("File statistics after wrangle",rawdatas['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
     else :
+      self.out.out("File statistics of .pan file",rawdatas['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
       rawdatas['StartTime']=pd.to_datetime(rawdatas['StartTime'],infer_datetime_format=True)
       rawdatas['ts1m']=pd.to_datetime(rawdatas['ts1m'],infer_datetime_format=True)
       rawdatas['ts10m']=pd.to_datetime(rawdatas['ts10m'],infer_datetime_format=True)
+      rawdatas['ts1h']=pd.to_datetime(rawdatas['ts1h'],infer_datetime_format=True)
     if len(self.ppregex) > 0 :
-      self.out.out("File statistics",rawdatas['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
       rawdatas=rawdatas[rawdatas['PurePath'].apply(self.regexFilter)]
-      self.out.p("PurePath filter by " + self.ppregex)
-    logging.warning(rawdatas.dtypes)
-    self.out.out("File TAIL",rawdatas.tail())
-    #self.out.out("Infos",rawdatas.info())
-    self.out.out("File statistics",rawdatas['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
+      self.out.out("Dataframe TAIL",rawdatas.tail(2))
+      self.out.out("Dataframe statistics after ppregex " + self.ppregex,rawdatas['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
+    else : 
+      self.out.out("Dataframe TAIL",rawdatas.tail(2))
+      self.out.out("Dataframe statistics",rawdatas['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
     self.df=rawdatas
