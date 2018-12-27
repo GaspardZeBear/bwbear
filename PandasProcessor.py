@@ -14,6 +14,7 @@ class PandasProcessor() :
     self.param=param
     self.param.processParam()
     self.p=self.param.getAll()
+    self.quick=self.p['quick']
     self.ppregex=self.p['ppregex']
     self.ppregexclude=self.p['ppregexclude']
     self.timeregex=self.p['timeregex']
@@ -30,21 +31,6 @@ class PandasProcessor() :
     for i in range(n) :
       yield i+1
 
-  #--------------------------------------------------------------------------------------
-  def XgraphAggregated(self,aggr,dgAggr,title,color='blue') :
-    plt.figure(figsize=(16,4))
-    fig, ax=plt.subplots(figsize=(16,4))
-    fig.autofmt_xdate()
-    ax.fmt_xdata = mdates.DateFormatter('%Y-%m-%d')
-    ax.set_title('fig.autofmt_xdate fixes the labels')
-    ax.xaxis.set_major_formatter(mdates.DateFormatter(self.p['timeFormat']))
-    dgAggr.plot(title=aggr + " " + title,color=color,rot=45,ax=ax,grid=True)
-    f=title + aggr + '.png'
-    plt.savefig(f)
-    plt.close()
-    self.p['out'].image(f,aggr + " " +title)
-
-  
   #--------------------------------------------------------------------------------------
   def getPngFileName(self,s) :
     self.fileCounter += 1
@@ -177,15 +163,6 @@ class PandasProcessor() :
       ])
   
   #--------------------------------------------------------------------------------------
-  def XmyGraphsErrors(self,datas,title,color='red') :
-    if datas.empty :
-      return
-    dg=datas.groupby(self.p['timeGroupby'])['Error']
-    #logging.warning(dg.sum())
-    self.graphAggregated('Sum', dg.sum() ,title, color)
-  
-  
-  #--------------------------------------------------------------------------------------
   def groupByDescribe(self,datas,grps) :
     logging.warning("groupByDescribe " + str(grps))
     if datas.empty :
@@ -204,7 +181,6 @@ class PandasProcessor() :
   
   #--------------------------------------------------------------------------------------
   def filter(self,rawdatas) :
-
     if len(self.ppregex) > 0 :
       rawdatas=rawdatas[rawdatas['PurePath'].apply(self.regexFilter)]
     if len(self.ppregexclude) > 0 :
@@ -213,69 +189,79 @@ class PandasProcessor() :
       logging.warning("Apply timeregex filter")
       rawdatas=rawdatas[rawdatas['StartTimeStr'].apply(self.timeregexFilter)]
     return(rawdatas)
+
+  #--------------------------------------------------------------------------------------
+  def detailsOnProcess(self) :
+    self.p['out'].h1("Analyzing file " + self.DFF.getInfos('Datafile'))
+    self.p['out'].h2("Param informations")
+    self.p['out'].p(self.param.getAllAsString())
+    self.p['out'].h2("Stats informations")
+    ths={
+       "Init"  : self.DFF.getDf()['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame(),
+       "OK"    : self.dfOK['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame(),
+       "KO"    : self.dfKO['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame(),
+       "Focus" : self.dfFocus['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame(),
+       "HighRespTime" : self.dfOK[ ( self.dfOK['ResponseTime'] > self.p['highResponseTime'] )]['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame()
+    }
+    self.p['out'].tables(ths)
+    if self.quick :
+      return
+    self.p['out'].h2("File informations")
+    self.p['out'].out("Initial head",self.DFF.getInfos('HeadInitial'))
+    if self.DFF.isWrangled() :
+      self.p['out'].out("Final head",self.DFF.getInfos('HeadFinal'))
+    self.p['out'].out("Initial tail",self.DFF.getInfos('TailInitial'))
+    if self.DFF.isWrangled() :
+      self.p['out'].out("Final tail",self.DFF.getInfos('TailFinal'))
+    self.p['out'].out("Initial file",self.DFF.getInfos('DescribeInitial'))
+    if self.DFF.isWrangled() :
+      self.p['out'].out("Final file",self.DFF.getInfos('DescribeFinal'))
+
+
   
   #--------------------------------------------------------------------------------------
   def go(self) :
     logging.warning("Start")
-    DFF=DFFormatter(self.p)
-    rawdatas=DFF.getDf()
+    self.DFF=DFFormatter(self.p)
+    rawdatas=self.DFF.getDf()
     logging.debug(rawdatas)
 
-    #if len(self.ppregex) > 0 :
-    #  rawdatas=rawdatas[rawdatas['PurePath'].apply(self.regexFilter)]
-    #if len(self.ppregexclude) > 0 :
-    #  rawdatas=rawdatas[rawdatas['PurePath'].apply(self.regexcludeFilter)]
     rawdatas=self.filter(rawdatas)
 
-    dfOK=rawdatas[ ( rawdatas['ErrorState'] == 'OK' ) ]
-    dfKO=rawdatas[ ( rawdatas['ErrorState'] != 'OK') ]
-    self.dfall=pd.DataFrame(dfOK.groupby(self.p['timeGroupby'])['StartTime'].count().apply(lambda x: 0))
-    DFF.setAutofocus(self.autofocus(dfOK))
-    dfFocus=dfOK[ dfOK['PurePath'].isin( DFF.getFocusedPurepaths()) ]
+    self.dfOK=rawdatas[ ( rawdatas['ErrorState'] == 'OK' ) ]
+    self.dfKO=rawdatas[ ( rawdatas['ErrorState'] != 'OK') ]
+    self.dfall=pd.DataFrame(self.dfOK.groupby(self.p['timeGroupby'])['StartTime'].count().apply(lambda x: 0))
+    self.DFF.setAutofocus(self.autofocus(self.dfOK))
+    self.dfFocus=self.dfOK[ self.dfOK['PurePath'].isin( self.DFF.getFocusedPurepaths()) ]
 
-    self.p['out'].h1("Analyzing file " + DFF.getInfos('Datafile'))
+    self.detailsOnProcess()
 
-    self.p['out'].h2("Param informations")
-    self.p['out'].p(self.param.getAllAsString())
-    self.p['out'].h2("File informations")
-    self.p['out'].out("Initial head",DFF.getInfos('HeadInitial'))
-    if DFF.isWrangled() :
-      self.p['out'].out("Final head",DFF.getInfos('HeadFinal'))
-    self.p['out'].out("Initial tail",DFF.getInfos('TailInitial'))
-    if DFF.isWrangled() :
-      self.p['out'].out("Final tail",DFF.getInfos('TailFinal'))
-    self.p['out'].out("Initial file",DFF.getInfos('DescribeInitial'))
-    if DFF.isWrangled() :
-      self.p['out'].out("Final file",DFF.getInfos('DescribeFinal'))
-  
-    self.p['out'].h2("Analyzing transactions in status OK ")
-    self.p['out'].out("File statistics",dfOK['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
-    self.myGraphs(dfOK, 'AllOk',["Agent","Application"])
+    self.p['out'].h2("Analyzing transactions in status OK (may be filtered) ")
+    self.myGraphs(self.dfOK, 'AllOk',["Agent","Application"])
     self.p['out'].h2("Analyzing transactions in Error ")
-    self.myGraphs(dfKO,'All Errors')
+    self.myGraphs(self.dfKO,'All Errors')
   
     self.p['out'].h2("Analyzing focused transactions")
-    #self.p['out'].h3("Focus details")
-    #self.p['out'].p("--autofocusmean : " + str(self.p['autofocusmean']))
-    #self.p['out'].p("--autofocuscount : " + str(self.p['autofocuscount']))
-    self.p['out'].out("File statistics",dfFocus['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame())
-    self.myGraphs(dfFocus,'Focus')
-    #for pp in dfOK['PurePath'].unique() :
-    for pp in DFF.getFocusedPurepaths() :
-      self.myGraphs(dfOK[dfOK['PurePath'] == pp], pp)
+    self.myGraphs(self.dfFocus,'Focus')
+    #for pp in self.dfOK['PurePath'].unique() :
+    for pp in self.DFF.getFocusedPurepaths() :
+      self.myGraphs(self.dfOK[self.dfOK['PurePath'] == pp], pp)
   
     self.p['out'].h2("Analyzing transactions with response time > " + str(self.p['highResponseTime']) )
     self.p['out'].h3("Statistics")
-    self.groupByDescribe(dfOK[ ( dfOK['ResponseTime'] > self.p['highResponseTime'] ) ],["PurePath"])
-    self.myGraphs(dfOK[ ( dfOK['ResponseTime'] > self.p['highResponseTime'] ) ],'HighResponseTime')
-    self.p['out'].out("Samples OK having high resp time ",dfOK[ ( dfOK['ResponseTime'] > self.p['highResponseTime'] ) ])
+    self.groupByDescribe(self.dfOK[ ( self.dfOK['ResponseTime'] > self.p['highResponseTime'] ) ],["PurePath"])
+    self.myGraphs(self.dfOK[ ( self.dfOK['ResponseTime'] > self.p['highResponseTime'] ) ],'HighResponseTime')
+    if not self.quick :
+      self.p['out'].out("Samples OK having high resp time ",self.dfOK[ ( self.dfOK['ResponseTime'] > self.p['highResponseTime'] ) ])
   
-    self.p['out'].h2("Detail of transactions in error state")
-    self.p['out'].out("Samples KO failed ",dfKO)
+    if not self.quick :
+      self.p['out'].h2("Detail of transactions in error state")
+      self.p['out'].out("Samples KO failed ",self.dfKO)
 
-    self.p['out'].h2("More details on transactions OK")
-    self.myGraphs(dfOK, 'AllOk')
+    if not self.quick :
+      self.p['out'].h2("More details on transactions OK")
+      self.myGraphs(self.dfOK, 'AllOk')
 
-    #self.p['out'].out("Rawdatas detail",dfOK)
+    #self.p['out'].out("Rawdatas detail",self.dfOK)
     logging.warning("End")
   

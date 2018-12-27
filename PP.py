@@ -21,6 +21,7 @@ import click
 @click.option('--ppregexclude', default='')
 @click.option('--pandas', default='Pandas')
 @click.option('--verbose', is_flag=True, default=False)
+@click.option('--quick', is_flag=True, default=False)
 
 def launch(
   datafile,
@@ -37,7 +38,8 @@ def launch(
   timeregex,
   ppregexclude,
   pandas,
-  verbose
+  verbose,
+  quick
   ) :
   p=Param()
   p.set('datafile',datafile)
@@ -45,6 +47,7 @@ def launch(
   p.set('formatfile',formatfile)
   p.set('pandas',pandas)
   p.set('verbose',verbose)
+  p.set('quick',quick)
   p.set('highResponseTime',highresponsetime)
   p.set('timeFormat',timeformat)
   p.set('decimal',decimal)

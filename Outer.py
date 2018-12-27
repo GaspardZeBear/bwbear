@@ -84,6 +84,18 @@ class OutputHtml(Out) :
       return 
     print(o.to_html(border=1))
 
+  def tables(self,ths) :
+    print("<table>")
+    print("<tr>")
+    for t in ths.keys() :
+      print("<th>" + t + "</th>")
+    print("</tr>")
+    print("<tr>")
+    for t in ths.values() :
+      print("<td>" + t.to_html(border=1) + "</td>")
+    print("</tr>")
+    print("</table>")
+
   def image(self,img,title) :
     print("<h4> Graph : " + title + "</h4>")
     print("<img src=\"" +img+ "\">")

@@ -43,6 +43,8 @@ class Param() :
     else :
       logging.basicConfig(format="%(asctime)s f=%(funcName)s %(levelname)s %(message)s", level=logging.WARNING)
     logging.warning("Logging initialized")
+    if 'quick' not in self.p :
+      self.p['quick'] = False
     if 'output' in self.p :
       if self.p['output'] ==  'html' :
         self.p['out']=OutputHtml()
