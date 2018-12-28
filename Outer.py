@@ -87,12 +87,12 @@ class OutputHtml(Out) :
   def tables(self,ths) :
     print("<table>")
     print("<tr>")
-    for t in ths.keys() :
+    for t in sorted(ths.keys()) :
       print("<th>" + t + "</th>")
     print("</tr>")
     print("<tr>")
-    for t in ths.values() :
-      print("<td>" + t.to_html(border=1) + "</td>")
+    for t in sorted(ths.keys()) :
+      print("<td>" + ths[t].to_html(border=1) + "</td>")
     print("</tr>")
     print("</table>")
 

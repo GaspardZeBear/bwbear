@@ -10,6 +10,7 @@ from Param import *
   
 class PandasProcessor() :
 
+  #--------------------------------------------------------------------------------------
   def __init__(self,param) :
     self.param=param
     self.param.processParam()
@@ -22,6 +23,7 @@ class PandasProcessor() :
     self.percentiles=[.50,.95,.99]
     self.fileCounter=0
     pd.options.display.float_format = '{:.0f}'.format
+    self.DFF=DFFormatter(self.p)
     self.go()
 
   #--------------------------------------------------------------------------------------
@@ -188,7 +190,11 @@ class PandasProcessor() :
     return(rawdatas)
 
   #--------------------------------------------------------------------------------------
-  def detailsOnProcess(self) :
+  def printTitle(self) :
+    self.p['out'].h1("Analyzing file " + self.DFF.getInfos('Datafile'))
+
+  #--------------------------------------------------------------------------------------
+  def printProcessing(self) :
     self.p['out'].h1("Analyzing file " + self.DFF.getInfos('Datafile'))
     self.p['out'].h2("Formatfile details ")
     self.p['out'].p(str(self.DFF.getInfos('json')))
@@ -196,11 +202,11 @@ class PandasProcessor() :
     self.p['out'].p(self.param.getAllAsString())
     self.p['out'].h2("Stats informations")
     ths={
-       "Init"  : self.DFF.getDf()['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame(),
-       "OK"    : self.dfOK['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame(),
-       "KO"    : self.dfKO['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame(),
-       "Focus" : self.dfFocus['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame(),
-       "HighRespTime" : self.dfHigh['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame()
+       "1.Init"  : self.DFF.getDf()['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame(),
+       "2.OK"    : self.dfOK['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame(),
+       "3.KO"    : self.dfKO['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame(),
+       "4.Focus" : self.dfFocus['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame(),
+       "5.HighRespTime" : self.dfHigh['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame()
     }
     self.p['out'].tables(ths)
     if self.quick :
@@ -216,37 +222,26 @@ class PandasProcessor() :
     if self.DFF.isWrangled() :
       self.p['out'].out("Final file",self.DFF.getInfos('DescribeFinal'))
 
-
-  
   #--------------------------------------------------------------------------------------
-  def go(self) :
-    logging.warning("Start")
-    self.DFF=DFFormatter(self.p)
-    rawdatas=self.DFF.getDf()
-    logging.debug(rawdatas)
-
-    rawdatas=self.filter(rawdatas)
-
-    self.dfOK=rawdatas[ ( rawdatas['ErrorState'] == 'OK' ) ]
-    self.dfKO=rawdatas[ ( rawdatas['ErrorState'] != 'OK') ]
-    self.dfall=pd.DataFrame(self.dfOK.groupby(self.p['timeGroupby'])['StartTime'].count().apply(lambda x: 0))
-    self.DFF.setAutofocus(self.autofocus(self.dfOK))
-    self.dfFocus=self.dfOK[ self.dfOK['PurePath'].isin( self.DFF.getFocusedPurepaths()) ]
-    self.dfHigh=self.dfOK[ ( self.dfOK['ResponseTime'] > self.p['highResponseTime'] ) ]
-
-    self.detailsOnProcess()
-
+  def printOK(self) :
     self.p['out'].h2("Analyzing " + str(len(self.dfOK)) + " transactions in status OK (" + str(self.filtered) + " have been filtered) ")
     self.myGraphs(self.dfOK, 'OK',["Agent","Application"])
+
+  #--------------------------------------------------------------------------------------
+  def printKO(self) :
     self.p['out'].h2("Analyzing transactions in Error ")
     self.myGraphs(self.dfKO,'Errors')
-  
+
+  #--------------------------------------------------------------------------------------
+  def printFocus(self) :
     self.p['out'].h2("Analyzing " + str(len(self.dfFocus)) + " focused transactions")
     self.myGraphs(self.dfFocus,'Focus')
     #for pp in self.dfOK['PurePath'].unique() :
     for pp in self.DFF.getFocusedPurepaths() :
       self.myGraphs(self.dfOK[self.dfOK['PurePath'] == pp], 'Focus ' + pp)
-  
+
+  #--------------------------------------------------------------------------------------
+  def printHighResponseTime(self) :
     self.p['out'].h2("Analyzing transactions with response time > " + str(self.p['highResponseTime']) )
     self.p['out'].h3("Statistics")
     self.groupByDescribe(self.dfOK[ ( self.dfOK['ResponseTime'] > self.p['highResponseTime'] ) ],["PurePath"],'HighResponseTime')
@@ -255,15 +250,41 @@ class PandasProcessor() :
       for pp in self.dfHigh['PurePath'].unique() :
         self.myGraphs(self.dfHigh[self.dfHigh['PurePath'] == pp], 'HighResponseTime ' + pp)
       self.p['out'].out("Samples OK having high resp time ",self.dfHigh)
-  
+
+  #--------------------------------------------------------------------------------------
+  def printKODetails(self) :
     if not self.quick :
       self.p['out'].h2("Detail of transactions in error state")
       self.p['out'].out("Samples KO failed ",self.dfKO)
 
+  #--------------------------------------------------------------------------------------
+  def printOKDetails(self) :
     if not self.quick :
       self.p['out'].h2("More details on transactions OK")
       self.myGraphs(self.dfOK, 'OK')
 
-    #self.p['out'].out("Rawdatas detail",self.dfOK)
+  #--------------------------------------------------------------------------------------
+  def buildDataframes(self) :
+    rawdatas=self.DFF.getDf()
+    rawdatas=self.filter(rawdatas)
+    self.dfOK=rawdatas[ ( rawdatas['ErrorState'] == 'OK' ) ]
+    self.dfKO=rawdatas[ ( rawdatas['ErrorState'] != 'OK') ]
+    self.dfall=pd.DataFrame(self.dfOK.groupby(self.p['timeGroupby'])['StartTime'].count().apply(lambda x: 0))
+    self.DFF.setAutofocus(self.autofocus(self.dfOK))
+    self.dfFocus=self.dfOK[ self.dfOK['PurePath'].isin( self.DFF.getFocusedPurepaths()) ]
+    self.dfHigh=self.dfOK[ ( self.dfOK['ResponseTime'] > self.p['highResponseTime'] ) ]
+
+  #--------------------------------------------------------------------------------------
+  def go(self) :
+    logging.warning("Start")
+    self.buildDataframes()
+    self.printTitle()
+    self.printProcessing()
+    self.printOK()
+    self.printKO()
+    self.printFocus()
+    self.printHighResponseTime()
+    self.printKODetails()
+    self.printOKDetails()
     logging.warning("End")
   
