@@ -73,6 +73,8 @@ def launch(
   p.set('autofocuscount',autofocuscount)
   p.processParam()
   pp=PandasProcessor(p)
+  l=p.getAll()
+  l['out'].close()
 
 #--------------------------------------------------------------------------------------
 @main.command()

@@ -15,8 +15,18 @@ class Out() :
 #--------------------------------------------------------------------------------------
 class OutputHtml(Out) :
 
+  #--------------------------------------------------------------------------------------
+  def __init__(self) :
+    self.tableOfContent=[]
+    self.content=[]
+
+  #--------------------------------------------------------------------------------------
+  def addToContent(self,txt) :
+    self.content.append(txt)
+
+  #--------------------------------------------------------------------------------------
   def open(self) :
-    print """
+    head= """
     <html>
     <head>
     <style>
@@ -55,50 +65,97 @@ class OutputHtml(Out) :
       border: 1px solid black;
       text-align: right;
     }
+    div#tableOfContent {
+	top: 50px;
+	left: 0px;
+	width:600px;
+	background-color:lightgrey;
+    }
+    div#content {
+ 	position:static;
+    }
+    div.toc2 {
+ 	color: black;
+        font-weight:bold;
+    }
+    ul {
+        list-style-type: none;
+    }
     </style>
     </head>
     <body>
     """
 
-    print("<body>")
+    self.head=head
 
+  #--------------------------------------------------------------------------------------
   def close(self) :
+    print(self.head)
+    print("<body>")
+    print(self.h1)
+    print("<div id=\"tableOfContent\">")
+    print("<ul>")
+    for c in self.tableOfContent :
+      print("<li>" + c + "</li>")
+    print("</ul>")
+    print("</div>")
+    print("<div id=\"content\">")
+    for c in self.content :
+      print(c)
+    print("</div>")
     print("</body>")
     print("</html>")
 
+  #--------------------------------------------------------------------------------------
+  def addToTableOfContent(self,level,title) :
+    clazz="toc"+str(level)
+    self.tableOfContent.append("<div class=\"" + clazz + "\">" + title +  "</div>")
+
+  #--------------------------------------------------------------------------------------
   def h1(self,h1) :
-    print("<h1>"+h1+"</h1>")
+    self.h1="<h1>"+h1+"</h1>"
 
+  #--------------------------------------------------------------------------------------
+  def getDivId(self,h,title) :
+    return("<div id=\"" + title +"\"><" + h + ">" +  title + "</" + h + "></div>")
+  #--------------------------------------------------------------------------------------
   def h2(self,h2) :
-    print("<h2>"+h2+"</h2>")
+    self.addToContent(self.getDivId("h2",h2))
+    self.addToTableOfContent(2,h2)
 
+  #--------------------------------------------------------------------------------------
   def h3(self,h3) :
-    print("<h3>"+h3+"</h3>")
+    self.addToContent(self.getDivId("h3",h3))
+    self.addToTableOfContent(3,h3)
 
+  #--------------------------------------------------------------------------------------
   def p(self,p) :
-    print("<p>"+p+"</p>")
+    self.addToContent("<p>"+p+"</p>")
 
+  #--------------------------------------------------------------------------------------
   def out(self,title,o) :
-    print("<h4>"+title+"</h4>")
+    self.addToContent("<h4>"+title+"</h4>")
     if o.empty :
       return 
-    print(o.to_html(border=1))
+    self.addToContent(o.to_html(border=1))
 
+  #--------------------------------------------------------------------------------------
   def tables(self,ths) :
-    print("<table>")
-    print("<tr>")
+    self.addToContent("<table>")
+    self.addToContent("<tr>")
     for t in sorted(ths.keys()) :
-      print("<th>" + t + "</th>")
-    print("</tr>")
-    print("<tr>")
+      self.addToContent("<th>" + t + "</th>")
+    self.addToContent("</tr>")
+    self.addToContent("<tr>")
     for t in sorted(ths.keys()) :
-      print("<td>" + ths[t].to_html(border=1) + "</td>")
-    print("</tr>")
-    print("</table>")
+      self.addToContent("<td>" + ths[t].to_html(border=1) + "</td>")
+    self.addToContent("</tr>")
+    self.addToContent("</table>")
 
+  #--------------------------------------------------------------------------------------
   def image(self,img,title) :
-    print("<h4> Graph : " + title + "</h4>")
-    print("<img src=\"" +img+ "\">")
+    self.addToContent("<h4> Graph : " + title + "</h4>")
+    self.addToContent("<img src=\"" +img+ "\">")
 
 #--------------------------------------------------------------------------------------
 class OutputTty(Out) :
