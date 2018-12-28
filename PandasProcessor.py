@@ -8,6 +8,18 @@ from Outer import *
 from DFFormatter import *
 from Param import *
   
+STEPS=dict()
+#----------------------------------------------------------------
+def Step(name) :
+  def Stepped(f) :
+    STEPS[name]=f
+    def wrapper(*args,**kwargs) :
+      a=list(args)
+      return(f(*args))
+    return(wrapper)
+  return(Stepped)
+
+#----------------------------------------------------------------
 class PandasProcessor() :
 
   #--------------------------------------------------------------------------------------
@@ -23,6 +35,7 @@ class PandasProcessor() :
     self.percentiles=[.50,.95,.99]
     self.buckets=self.p['buckets']
     self.fileCounter=0
+    self.steps=self.p['steps']
     pd.options.display.float_format = '{:.0f}'.format
     self.DFF=DFFormatter(self.p)
     self.go()
@@ -202,12 +215,20 @@ class PandasProcessor() :
     self.p['out'].h1("Analyzing file " + self.DFF.getInfos('Datafile'))
 
   #--------------------------------------------------------------------------------------
+  @Step('Formatfile')
   def printProcessing(self) :
-    self.p['out'].h1("Analyzing file " + self.DFF.getInfos('Datafile'))
     self.p['out'].h2("Formatfile details ")
     self.p['out'].p(str(self.DFF.getInfos('json')))
+
+  #--------------------------------------------------------------------------------------
+  @Step('Params')
+  def printParams(self) :
     self.p['out'].h2("Param informations")
     self.p['out'].p(self.param.getAllAsString())
+
+  #--------------------------------------------------------------------------------------
+  @Step('Stats')
+  def printStats(self) :
     self.p['out'].h2("Stats informations")
     ths={
        "1.Init"  : self.DFF.getDf()['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame(),
@@ -219,6 +240,10 @@ class PandasProcessor() :
     self.p['out'].tables(ths)
     if self.quick :
       return
+
+  #--------------------------------------------------------------------------------------
+  @Step('File')
+  def printFile(self) :
     self.p['out'].h2("File informations")
     self.p['out'].out("Initial head",self.DFF.getInfos('HeadInitial'))
     if self.DFF.isWrangled() :
@@ -231,16 +256,19 @@ class PandasProcessor() :
       self.p['out'].out("Final file",self.DFF.getInfos('DescribeFinal'))
 
   #--------------------------------------------------------------------------------------
+  @Step('OK')
   def printOK(self) :
     self.p['out'].h2("Analyzing " + str(len(self.dfOK)) + " transactions in status OK (" + str(self.filtered) + " have been filtered) ")
     self.myGraphs(self.dfOK, 'OK',["Agent","Application"])
 
   #--------------------------------------------------------------------------------------
+  @Step('KO')
   def printKO(self) :
     self.p['out'].h2("Analyzing transactions in Error ")
     self.myGraphs(self.dfKO,'Errors')
 
   #--------------------------------------------------------------------------------------
+  @Step('Focus')
   def printFocus(self) :
     self.p['out'].h2("Analyzing " + str(len(self.dfFocus)) + " focused transactions")
     self.myGraphs(self.dfFocus,'Focus')
@@ -249,6 +277,7 @@ class PandasProcessor() :
       self.myGraphs(self.dfOK[self.dfOK['PurePath'] == pp], 'Focus ' + pp)
 
   #--------------------------------------------------------------------------------------
+  @Step('HighResponseTime')
   def printHighResponseTime(self) :
     self.p['out'].h2("Analyzing transactions with response time > " + str(self.p['highResponseTime']) )
     #self.p['out'].h3("Statistics")
@@ -261,12 +290,14 @@ class PandasProcessor() :
       self.p['out'].out("Samples OK having high resp time ",self.dfHigh)
 
   #--------------------------------------------------------------------------------------
+  @Step('KODetails')
   def printKODetails(self) :
     if not self.quick :
       self.p['out'].h2("Detail of transactions in error state")
       self.p['out'].out("Samples KO failed ",self.dfKO)
 
   #--------------------------------------------------------------------------------------
+  @Step('OKDetails')
   def printOKDetails(self) :
     if not self.quick :
       self.p['out'].h2("More details on transactions OK")
@@ -288,12 +319,14 @@ class PandasProcessor() :
     logging.warning("Start")
     self.buildDataframes()
     self.printTitle()
-    self.printProcessing()
-    self.printOK()
-    self.printKO()
-    self.printFocus()
-    self.printHighResponseTime()
-    self.printKODetails()
-    self.printOKDetails()
+    for s in self.steps :
+      STEPS[s](self)
+    #self.printProcessing()
+    #self.printOK()
+    #self.printKO()
+    #self.printFocus()
+    #self.printHighResponseTime()
+    #self.printKODetails()
+    #self.printOKDetails()
     logging.warning("End")
   
