@@ -11,18 +11,10 @@
   "generator" :"",
   "search" :""
 },
-"FOCUS":
-[],
-"PPALIAS":
-{
-},
-"DROPCOLUMNS":
-["Breakdown","Top Findings","Duration [ms]"],
-"RENAMECOLUMNS":
-{
-"Error State":"ErrorState",
-"Response Time [ms]":"ResponseTime",
-"Start Time":"StartTime"
-}
+"FOCUS": [],
+"DROPROWS" : ["assets",".png"],
+"PPALIAS": { },
+"DROPCOLUMNS": ["Breakdown","Top Findings","Duration [ms]"],
+"RENAMECOLUMNS": { "Error State":"ErrorState", "Response Time [ms]":"ResponseTime", "Start Time":"StartTime" }
 }
 

@@ -25,7 +25,7 @@ class PandasProcessor() :
   #--------------------------------------------------------------------------------------
   def __init__(self,param) :
     self.param=param
-    self.param.processParam()
+    #self.param.processParam()
     self.p=self.param.getAll()
     self.quick=self.p['quick']
     self.nodescribe=self.p['nodescribe']

@@ -4,8 +4,12 @@ from PandasProcessor import *
 from Param import *
 import click
 
+@click.group()
+def main():
+    pass
+
 #--------------------------------------------------------------------------------------
-@click.command()
+@main.command()
 @click.option('--datafile', help='datafile')
 @click.option('--formatfile',help='formatfile')
 @click.option('--output', default='html')
@@ -67,11 +71,22 @@ def launch(
   p.set('timeGroupby',timegroupby)
   p.set('autofocusmean',autofocusmean)
   p.set('autofocuscount',autofocuscount)
+  p.processParam()
   pp=PandasProcessor(p)
+
+#--------------------------------------------------------------------------------------
+@main.command()
+def params() :
+  p=Param()
+  p.processParam()
+  l=p.getAll()
+  for pp in sorted(l):
+    print(pp + " : " + str(l[pp]))
 
 #--------------------------------------------------------------------------------------
 if __name__ == '__main__':
   #logging.warning("Start")
-  launch()
+  #launch()
+  main()
   #logging.warning("End")
 
