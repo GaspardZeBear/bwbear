@@ -21,8 +21,7 @@ class PandasProcessor() :
     self.ppregexclude=self.p['ppregexclude']
     self.timeregex=self.p['timeregex']
     self.percentiles=[.50,.95,.99]
-    self.buckets=[0,100,200,300,400,500,600,700,800,900,1000,2000,3000,4000,5000,10000,20000,30000,60000,1000000]
-    self.buckets=[0,100,200,300,400,500,1000,2000,3000,4000,5000,10000,20000,30000,60000,1000000]
+    self.buckets=self.p['buckets']
     self.fileCounter=0
     pd.options.display.float_format = '{:.0f}'.format
     self.DFF=DFFormatter(self.p)
@@ -154,8 +153,11 @@ class PandasProcessor() :
     dg=datas.groupby(bins)['ResponseTime']
     self.myPlotBar(dg,'Buckets for ' + title)
     dg=datas.groupby(self.p['timeGroupby'])['ResponseTime']
-    for d in describe :
-      self.groupByDescribe(datas,[d],title)
+    if self.nodescribe :
+      self.groupByDescribe(datas,'PurePath',title)
+    else :
+      for d in describe :
+        self.groupByDescribe(datas,[d],title)
     self.graphBasicsNew("Time vision " + title, dg, [ 
       { 'aggr' : 'Max', 'dgaggr' : dg.max(), 'color' : 'red'},
       { 'aggr' : 'Mean', 'dgaggr' : dg.mean(), 'color' : 'green'},
@@ -166,8 +168,8 @@ class PandasProcessor() :
   #--------------------------------------------------------------------------------------
   def groupByDescribe(self,datas,grps,title='') :
     logging.warning("groupByDescribe " + str(grps))
-    if self.nodescribe :
-      return
+    #if self.nodescribe :
+    #  return
     if datas.empty :
       return
     dg=datas.groupby(grps)['ResponseTime']
@@ -249,12 +251,13 @@ class PandasProcessor() :
   #--------------------------------------------------------------------------------------
   def printHighResponseTime(self) :
     self.p['out'].h2("Analyzing transactions with response time > " + str(self.p['highResponseTime']) )
-    self.p['out'].h3("Statistics")
-    self.groupByDescribe(self.dfOK[ ( self.dfOK['ResponseTime'] > self.p['highResponseTime'] ) ],["PurePath"],'HighResponseTime')
+    #self.p['out'].h3("Statistics")
+    #self.groupByDescribe(self.dfOK[ ( self.dfOK['ResponseTime'] > self.p['highResponseTime'] ) ],["PurePath"],'HighResponseTime')
     self.myGraphs(self.dfHigh,'HighResponseTime')
     if not self.quick :
       for pp in self.dfHigh['PurePath'].unique() :
-        self.myGraphs(self.dfHigh[self.dfHigh['PurePath'] == pp], 'HighResponseTime ' + pp)
+        if self.dfHigh[self.dfHigh['PurePath'] == pp]['ResponseTime'].count() > 10 :
+          self.myGraphs(self.dfHigh[self.dfHigh['PurePath'] == pp], 'HighResponseTime ' + pp)
       self.p['out'].out("Samples OK having high resp time ",self.dfHigh)
 
   #--------------------------------------------------------------------------------------

@@ -55,6 +55,10 @@ class Param() :
     else :
         self.p['out']=OutputTty()
     self.p['out'].open()
+    if 'buckets' not in self.p :
+      self.p['buckets']=[0,100,200,300,400,500,1000,2000,3000,4000,5000,10000,20000,30000,60000,1000000]
+    else :
+      self.p['buckets']=[int(s) for s in self.p['buckets'].split(',')]
     if 'decimal' not in self.p :
       self.p['decimal']=','
     if 'ymax' not in self.p :

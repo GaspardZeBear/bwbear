@@ -13,6 +13,7 @@ import click
 @click.option('--timeformat', default='%H-%M')
 @click.option('--decimal', default=',')
 @click.option('--highresponsetime', default=5000)
+@click.option('--buckets', default='0,100,200,300,400,500,1000,2000,3000,4000,5000,10000,20000,30000,60000,1000000')
 @click.option('--autofocusmean', default=100)
 @click.option('--autofocuscount', default=30)
 @click.option('--ymax', default=0)
@@ -32,6 +33,7 @@ def launch(
   timeformat,
   decimal,
   highresponsetime,
+  buckets,
   autofocusmean,
   autofocuscount,
   ymax,
@@ -52,6 +54,7 @@ def launch(
   p.set('quick',quick)
   p.set('nodescribe',nodescribe)
   p.set('highResponseTime',highresponsetime)
+  p.set('buckets',buckets)
   p.set('timeFormat',timeformat)
   p.set('decimal',decimal)
   p.set('ymax',ymax)
