@@ -19,6 +19,7 @@ import click
 @click.option('--ymax', default=0)
 @click.option('--ppregex', default='')
 @click.option('--timeregex', default='')
+@click.option('--steps', default='')
 @click.option('--ppregexclude', default='')
 @click.option('--pandas', default='Pandas')
 @click.option('--verbose', is_flag=True, default=False)
@@ -39,6 +40,7 @@ def launch(
   ymax,
   ppregex,
   timeregex,
+  steps,
   ppregexclude,
   pandas,
   verbose,
@@ -54,6 +56,7 @@ def launch(
   p.set('quick',quick)
   p.set('nodescribe',nodescribe)
   p.set('highResponseTime',highresponsetime)
+  p.set('steps',steps)
   p.set('buckets',buckets)
   p.set('timeFormat',timeformat)
   p.set('decimal',decimal)

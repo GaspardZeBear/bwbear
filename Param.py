@@ -59,6 +59,23 @@ class Param() :
       self.p['buckets']=[0,100,200,300,400,500,1000,2000,3000,4000,5000,10000,20000,30000,60000,1000000]
     else :
       self.p['buckets']=[int(s) for s in self.p['buckets'].split(',')]
+
+    if 'steps' not in self.p or len(self.p['steps']) == 0 :
+      self.p['steps']=[
+      'Formatfile',
+      'Params',
+      'Stats',
+      'File',
+      'OK',
+      'KO',
+      'Focus',
+      'HighResponseTime',
+      'KODetails',
+      'OKDetails',
+      ]
+    else :
+      self.p['steps']=[s for s in self.p['steps'].split(',')]
+
     if 'decimal' not in self.p :
       self.p['decimal']=','
     if 'ymax' not in self.p :
