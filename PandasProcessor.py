@@ -21,6 +21,8 @@ class PandasProcessor() :
     self.ppregexclude=self.p['ppregexclude']
     self.timeregex=self.p['timeregex']
     self.percentiles=[.50,.95,.99]
+    self.buckets=[0,100,200,300,400,500,600,700,800,900,1000,2000,3000,4000,5000,10000,20000,30000,60000,1000000]
+    self.buckets=[0,100,200,300,400,500,1000,2000,3000,4000,5000,10000,20000,30000,60000,1000000]
     self.fileCounter=0
     pd.options.display.float_format = '{:.0f}'.format
     self.DFF=DFFormatter(self.p)
@@ -147,6 +149,10 @@ class PandasProcessor() :
     if datas.empty :
       return
     self.p['out'].h3("Statistics and graph : " + title)
+    bins=pd.cut(datas['ResponseTime'],self.buckets)
+    #bins=pd.cut(datas['ResponseTime'],3)
+    dg=datas.groupby(bins)['ResponseTime']
+    self.myPlotBar(dg,'Buckets for ' + title)
     dg=datas.groupby(self.p['timeGroupby'])['ResponseTime']
     for d in describe :
       self.groupByDescribe(datas,[d],title)
