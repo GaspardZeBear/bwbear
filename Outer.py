@@ -33,6 +33,7 @@ class OutputHtml(Out) :
     body {
           background-color: white;
           counter-reset: h2counter;
+          counter-reset: toc2counter;
     }
     h1   {
           color: black;
@@ -40,7 +41,7 @@ class OutputHtml(Out) :
           text-decoration: underline overline;
           counter-reset: h2counter;
     }
-    h2::before {
+    h2:before {
         content: "Section " counter(h2counter) ".  "; 
         counter-increment: h2counter;
     }
@@ -50,7 +51,7 @@ class OutputHtml(Out) :
           text-decoration: underline overline;
           counter-reset: h3counter;
     }
-    h3::before {
+    h3:before {
         content: counter(h2counter) "." counter(h3counter) ".  ";
     }
     h3   {
@@ -74,9 +75,21 @@ class OutputHtml(Out) :
     div#content {
  	position:static;
     }
+    div.toc2:before {
+        content: "Section " counter(toc2counter) ".  "; 
+        counter-increment: toc2counter;
+    }
     div.toc2 {
  	color: black;
         font-weight:bold;
+        counter-reset: toc3counter;
+    }
+    div.toc3:before {
+        content: counter(toc2counter) "." counter(toc3counter) ".  ";
+    }
+    div.toc3 {
+ 	color: black;
+        counter-increment: toc3counter;
     }
     ul {
         list-style-type: none;
@@ -84,6 +97,7 @@ class OutputHtml(Out) :
     </style>
     </head>
     <body>
+    <a id="top"></a>
     """
 
     self.head=head
@@ -94,10 +108,11 @@ class OutputHtml(Out) :
     print("<body>")
     print(self.h1)
     print("<div id=\"tableOfContent\">")
-    print("<ul>")
+    #print("<ul>")
     for c in self.tableOfContent :
-      print("<li>" + c + "</li>")
-    print("</ul>")
+      print( c )
+      #print("<li>" + c + "</li>")
+    #print("</ul>")
     print("</div>")
     print("<div id=\"content\">")
     for c in self.content :
@@ -109,7 +124,8 @@ class OutputHtml(Out) :
   #--------------------------------------------------------------------------------------
   def addToTableOfContent(self,level,title) :
     clazz="toc"+str(level)
-    self.tableOfContent.append("<div class=\"" + clazz + "\">" + title +  "</div>")
+    lnk="<a href=\"#" + str(abs(hash(title))) + "\">"
+    self.tableOfContent.append("<div class=\"" + clazz + "\">" + lnk + title +  "</a></div>")
 
   #--------------------------------------------------------------------------------------
   def h1(self,h1) :
@@ -117,7 +133,12 @@ class OutputHtml(Out) :
 
   #--------------------------------------------------------------------------------------
   def getDivId(self,h,title) :
-    return("<div id=\"" + title +"\"><" + h + ">" +  title + "</" + h + "></div>")
+    return("<div id=\"" + str(abs(hash(title))) +"\"></div><" + h + ">" + "<a href=\"#top\">&nbsp;&uarr;&nbsp;</a>"+ title + "</" + h + ">")
+
+  #--------------------------------------------------------------------------------------
+  def XgetTocDiv(self,h,title) :
+    return("<div class=\"toc" + str(h) +"\">" +  title + "</div>")
+
   #--------------------------------------------------------------------------------------
   def h2(self,h2) :
     self.addToContent(self.getDivId("h2",h2))
@@ -134,7 +155,7 @@ class OutputHtml(Out) :
 
   #--------------------------------------------------------------------------------------
   def out(self,title,o) :
-    self.addToContent("<h4>"+title+"</h4>")
+    self.addToContent("<br/><b>"+title+"</b>")
     if o.empty :
       return 
     self.addToContent(o.to_html(border=1))
