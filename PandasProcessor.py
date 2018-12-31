@@ -297,13 +297,6 @@ class PandasProcessor() :
       self.p['out'].out("Samples KO failed ",self.dfKO)
 
   #--------------------------------------------------------------------------------------
-  @Step('OKDetails')
-  def printOKDetails(self) :
-    if not self.quick :
-      self.p['out'].h2("More details on transactions OK")
-      self.myGraphs(self.dfOK, 'OK')
-
-  #--------------------------------------------------------------------------------------
   def buildDataframes(self) :
     rawdatas=self.DFF.getDf()
     rawdatas=self.filter(rawdatas)
@@ -321,12 +314,5 @@ class PandasProcessor() :
     self.printTitle()
     for s in self.steps :
       STEPS[s](self)
-    #self.printProcessing()
-    #self.printOK()
-    #self.printKO()
-    #self.printFocus()
-    #self.printHighResponseTime()
-    #self.printKODetails()
-    #self.printOKDetails()
     logging.warning("End")
   

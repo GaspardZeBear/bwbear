@@ -69,7 +69,6 @@ class OutputHtml(Out) :
     div#tableOfContent {
 	top: 50px;
 	left: 0px;
-	width:600px;
 	background-color:lightgrey;
     }
     div#content {

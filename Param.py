@@ -71,7 +71,6 @@ class Param() :
       'Focus',
       'HighResponseTime',
       'KODetails',
-      'OKDetails',
       ]
     else :
       self.p['steps']=[s for s in self.p['steps'].split(',')]
