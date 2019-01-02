@@ -75,6 +75,9 @@ class Param() :
     else :
       self.p['steps']=[s for s in self.p['steps'].split(',')]
 
+    if 'workdir' not in self.p :
+      self.p['workdir']=self.p['datafile'] + '.workdir'
+
     if 'decimal' not in self.p :
       self.p['decimal']=','
     if 'ymax' not in self.p :

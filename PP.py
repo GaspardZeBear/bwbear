@@ -25,12 +25,12 @@ def main():
 @click.option('--timeregex', default='')
 @click.option('--steps', default='')
 @click.option('--ppregexclude', default='')
-@click.option('--pandas', default='Pandas')
+@click.option('--workdir', default='')
 @click.option('--verbose', is_flag=True, default=False)
 @click.option('--quick', is_flag=True, default=False)
 @click.option('--nodescribe', is_flag=True, default=False)
 
-def launch(
+def ppanalyze(
   datafile,
   formatfile,
   output,
@@ -46,7 +46,7 @@ def launch(
   timeregex,
   steps,
   ppregexclude,
-  pandas,
+  workdir,
   verbose,
   quick,
   nodescribe
@@ -55,7 +55,7 @@ def launch(
   p.set('datafile',datafile)
   p.set('output',output)
   p.set('formatfile',formatfile)
-  p.set('pandas',pandas)
+  p.set('workdir',workdir)
   p.set('verbose',verbose)
   p.set('quick',quick)
   p.set('nodescribe',nodescribe)
@@ -78,7 +78,7 @@ def launch(
 
 #--------------------------------------------------------------------------------------
 @main.command()
-def params() :
+def ppparams() :
   p=Param()
   p.processParam()
   l=p.getAll()
@@ -88,7 +88,7 @@ def params() :
 #--------------------------------------------------------------------------------------
 if __name__ == '__main__':
   #logging.warning("Start")
-  #launch()
+  #ppanalyze()
   main()
   #logging.warning("End")
 
