@@ -29,6 +29,7 @@ def main():
 @click.option('--verbose', is_flag=True, default=False)
 @click.option('--quick', is_flag=True, default=False)
 @click.option('--nodescribe', is_flag=True, default=False)
+@click.option('--nographs', is_flag=True, default=False)
 
 def ppanalyze(
   datafile,
@@ -49,7 +50,8 @@ def ppanalyze(
   workdir,
   verbose,
   quick,
-  nodescribe
+  nodescribe,
+  nographs
   ) :
   p=Param()
   p.set('datafile',datafile)
@@ -57,6 +59,7 @@ def ppanalyze(
   p.set('formatfile',formatfile)
   p.set('workdir',workdir)
   p.set('verbose',verbose)
+  p.set('nographs',nographs)
   p.set('quick',quick)
   p.set('nodescribe',nodescribe)
   p.set('highResponseTime',highresponsetime)
@@ -72,7 +75,10 @@ def ppanalyze(
   p.set('autofocusmean',autofocusmean)
   p.set('autofocuscount',autofocuscount)
   p.processParam()
+  l=p.getAll()
   pp=PandasProcessor(p)
+  pp.setBehavior()
+  pp.go()
   l=p.getAll()
   l['out'].close()
 

@@ -58,7 +58,17 @@ class OutputHtml(Out) :
           color: black;
           counter-increment: h3counter;
           text-decoration: underline;
+          counter-reset: h4counter;
     }
+
+    h4:before {
+        content: counter(h2counter) "." counter(h3counter) "." counter(h4counter) ".  ";
+    }
+    h4   {
+          color: black;
+          counter-increment: h4counter;
+    }
+
 
     p    {color: black;}
     table, th, td {
@@ -147,6 +157,10 @@ class OutputHtml(Out) :
   def h3(self,h3) :
     self.addToContent(self.getDivId("h3",h3))
     self.addToTableOfContent(3,h3)
+
+  #--------------------------------------------------------------------------------------
+  def h4(self,h4) :
+    self.addToContent(self.getDivId("h4",h4))
 
   #--------------------------------------------------------------------------------------
   def p(self,p) :

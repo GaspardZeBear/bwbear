@@ -47,6 +47,8 @@ class Param() :
       self.p['quick'] = False
     if 'nodescribe' not in self.p :
       self.p['nodescribe'] = False
+    if 'nographs' not in self.p :
+      self.p['nographs'] = False
     if 'output' in self.p :
       if self.p['output'] ==  'html' :
         self.p['out']=OutputHtml()

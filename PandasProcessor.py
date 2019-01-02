@@ -6,6 +6,7 @@ import numpy as np
 import logging
 from Outer import *
 from DFFormatter import *
+from PandasGrapher import *
 from Param import *
   
 STEPS=dict()
@@ -25,10 +26,15 @@ class PandasProcessor() :
   #--------------------------------------------------------------------------------------
   def __init__(self,param) :
     self.param=param
-    #self.param.processParam()
+    self.setBehavior()
+    self.DFF=DFFormatter(self.p)
+
+  #--------------------------------------------------------------------------------------
+  def setBehavior(self) :
     self.p=self.param.getAll()
     self.quick=self.p['quick']
     self.nodescribe=self.p['nodescribe']
+    self.nographs=self.p['nographs']
     self.ppregex=self.p['ppregex']
     self.ppregexclude=self.p['ppregexclude']
     self.timeregex=self.p['timeregex']
@@ -36,89 +42,8 @@ class PandasProcessor() :
     self.buckets=self.p['buckets']
     self.fileCounter=0
     self.steps=self.p['steps']
+    self.grapher=PandasGrapher(self.param)
     pd.options.display.float_format = '{:.0f}'.format
-    self.DFF=DFFormatter(self.p)
-    self.go()
-
-  #--------------------------------------------------------------------------------------
-  def getPngFileName(self,s) :
-    self.fileCounter += 1
-    n=str(s).translate(None,' /.,:;\[]()-*') + str(self.fileCounter) + '.png'
-    #n=str(s).translate(None,' \'/.,:;\[]()-*') + '.png'
-    logging.warning(n)
-    return(n)
-  
-  #--------------------------------------------------------------------------------------
-  def graphBasicsNew(self,title,dgbase,dgList) :
-    logging.debug("graphBasics aggr=" + title)
-    plt.figure(figsize=(16,4))
-    fig, ax=plt.subplots(figsize=(16,4))
-    fig.autofmt_xdate()
-    logging.debug("graphBasics setting ax")
-    ax.fmt_xdata = mdates.DateFormatter('%Y-%m-%d')
-    ax.set_title('fig.autofmt_xdate fixes the labels')
-    ax.xaxis.set_major_formatter(mdates.DateFormatter(self.p['timeFormat']))
-    ax.set_ylabel('Time ms', color='black')
-    self.dfall.plot(rot=45,ax=ax,grid=True,linewidth=0)
-    for dg in dgList : 
-      style=self.param.getGraphStyle(dg['aggr'])
-      dg['dgaggr'].plot(title=title,rot=45,ax=ax,grid=True,color=style['color'],legend=True,label=dg['aggr'],linewidth=style['linewidth'])
-      if dg['dgaggr'].count() < 50 :
-        dg['dgaggr'].plot(title=title,rot=45,ax=ax,grid=True,legend=True,label=dg['aggr'],style=style['point'])
-      if self.p['ymax'] > 0 :
-        ax.set_ylim(ymin=0,ymax=self.p['ymax'])
-      else :
-        ax.set_ylim(ymin=0)
-    logging.debug("graphBasics setting axtwin")
-    axtwin=ax.twinx()
-    axtwin.set_ylabel('Count', color='lightgrey')
-    dfCount=dgbase.count().reset_index()
-    dfm=pd.merge_ordered(self.dfall,dfCount,left_on=self.p['timeGroupby'],right_on=self.p['timeGroupby'],how='outer')
-    dfm = dfm.set_index(self.p['timeGroupby'])
-    dfm.drop('StartTime',axis=1,inplace=True)
-    dfm.fillna(value=0,inplace=True)
-  
-    dfm.plot(ax=axtwin,color='lightgrey',linestyle='--',legend=False,label='Count')
-    axtwin.set_ylim(ymin=0)
-    logging.debug("title " + title)
-    f=self.getPngFileName(str(title))
-    plt.savefig(f)
-    plt.close()
-    self.p['out'].image(f,title)
-  
-  
-  #--------------------------------------------------------------------------------------
-  def myPlotBar(self,datas,title) :
-    dc=datas.count() 
-    dm=datas.mean() 
-    if dc.empty :
-      return
-    if dc.size > 100 :
-      return
-    logging.warning(datas)
-    df=dc.to_frame()
-    df.rename(columns={"ResponseTime":"Count"},inplace=True)
-    dfm=dm.to_frame()
-    dfm.rename(columns={"ResponseTime":"Mean"},inplace=True)
-
-    figYSize=int(dc.size/4) + 1
-
-    fig=plt.figure(figsize=(16,figYSize))
-    ax=fig.add_subplot(121)
-    df.plot.barh(color='lightgrey',ax=ax,grid=True)
-    ax.minorticks_on()
-    ax.xaxis.grid(True, which='minor', linestyle='-', linewidth=0.25)
-    axm=fig.add_subplot(122)
-    dfm.plot.barh(color='green',ax=axm,grid=True)
-    axm.minorticks_on()
-    axm.xaxis.grid(True, which='minor', linestyle='-', linewidth=0.25)
-    axm.get_yaxis().set_ticks([])
-
-    f=self.getPngFileName(title)
-    plt.tight_layout()
-    plt.savefig(f)
-    plt.close()
-    self.p['out'].image(f,title)
 
   #--------------------------------------------------------------------------------------
   def timeregexFilter(self,val):
@@ -157,26 +82,39 @@ class PandasProcessor() :
 
   #--------------------------------------------------------------------------------------
   def myGraphs(self,datas,title,describe=['Agent','PurePath','Application']) :
-    logging.warning("myGraphs " + title)
+    logging.warning("myGraphs begin " + title)
     if datas.empty :
       return
     self.p['out'].h3("Statistics and graph : " + title)
     bins=pd.cut(datas['ResponseTime'],self.buckets)
+    logging.warning("datas binning " + title)
     #bins=pd.cut(datas['ResponseTime'],3)
     dg=datas.groupby(bins)['ResponseTime']
-    self.myPlotBar(dg,'Buckets for ' + title)
+    logging.warning("datas binned " + title)
+    self.p['out'].h4("Buckets for " + title)
+    if not self.nographs :
+      self.grapher.myPlotBar(dg,'Buckets for ' + title)
+    else : 
+      self.p['out'].out(title + " buckets",dg.describe(percentiles=self.percentiles))
     dg=datas.groupby(self.p['timeGroupby'])['ResponseTime']
+    self.p['out'].h4("Grouping for " + title)
     if self.nodescribe :
       self.groupByDescribe(datas,'PurePath',title)
     else :
       for d in describe :
         self.groupByDescribe(datas,[d],title)
-    self.graphBasicsNew("Time vision " + title, dg, [ 
+    if self.nographs :
+      #self.p['out'].out(title, datas.groupby('PurePath').describe(percentiles=self.percentiles))
+      pass
+    else :
+      self.p['out'].h4("Time view for " + title)
+      self.grapher.graphBasicsNew("Time view " + title, dg, [ 
       { 'aggr' : 'Max', 'dgaggr' : dg.max(), 'color' : 'red'},
       { 'aggr' : 'Mean', 'dgaggr' : dg.mean(), 'color' : 'green'},
       { 'aggr' : 'Q50', 'dgaggr' : dg.quantile(0.5), 'color' : 'green'},
       { 'aggr' : 'Q95', 'dgaggr' : dg.quantile(0.95), 'color' : 'green'},
       ])
+    logging.warning("myGraphs end " + title)
   
   #--------------------------------------------------------------------------------------
   def groupByDescribe(self,datas,grps,title='') :
@@ -187,7 +125,8 @@ class PandasProcessor() :
       return
     dg=datas.groupby(grps)['ResponseTime']
     self.p['out'].out("GroupBy "  +  str(grps) + " " + title + " statistics" ,dg.describe(percentiles=self.percentiles))
-    self.myPlotBar(datas.groupby(grps)['ResponseTime'],str(grps) + " " + title)
+    if not self.nographs :
+      self.grapher.myPlotBar(datas.groupby(grps)['ResponseTime'],str(grps) + " " + title)
   
   #--------------------------------------------------------------------------------------
   def autofocus(self,datas) :
@@ -286,7 +225,7 @@ class PandasProcessor() :
     if not self.quick :
       for pp in self.dfHigh['PurePath'].unique() :
         if self.dfHigh[self.dfHigh['PurePath'] == pp]['ResponseTime'].count() > 10 :
-          self.myGraphs(self.dfHigh[self.dfHigh['PurePath'] == pp], 'HighResponseTime ' + pp)
+          self.myGraphs(self.dfHigh[self.dfHigh['PurePath'] == pp], 'HighResponseTime Detail' + pp)
       self.p['out'].out("Samples OK having high resp time ",self.dfHigh)
 
   #--------------------------------------------------------------------------------------
@@ -303,6 +242,7 @@ class PandasProcessor() :
     self.dfOK=rawdatas[ ( rawdatas['ErrorState'] == 'OK' ) ]
     self.dfKO=rawdatas[ ( rawdatas['ErrorState'] != 'OK') ]
     self.dfall=pd.DataFrame(self.dfOK.groupby(self.p['timeGroupby'])['StartTime'].count().apply(lambda x: 0))
+    self.grapher.setDfall(self.dfall)
     self.DFF.setAutofocus(self.autofocus(self.dfOK))
     self.dfFocus=self.dfOK[ self.dfOK['PurePath'].isin( self.DFF.getFocusedPurepaths()) ]
     self.dfHigh=self.dfOK[ ( self.dfOK['ResponseTime'] > self.p['highResponseTime'] ) ]
