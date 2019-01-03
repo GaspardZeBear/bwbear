@@ -47,6 +47,8 @@ class Param() :
       self.p['quick'] = False
     if 'nodescribe' not in self.p :
       self.p['nodescribe'] = False
+    if 'nobuckets' not in self.p :
+      self.p['nobuckets'] = False
     if 'nographs' not in self.p :
       self.p['nographs'] = False
     if 'output' in self.p :

@@ -28,6 +28,7 @@ def main():
 @click.option('--workdir', default='')
 @click.option('--verbose', is_flag=True, default=False)
 @click.option('--quick', is_flag=True, default=False)
+@click.option('--nobuckets', is_flag=True, default=False)
 @click.option('--nodescribe', is_flag=True, default=False)
 @click.option('--nographs', is_flag=True, default=False)
 
@@ -50,6 +51,7 @@ def ppanalyze(
   workdir,
   verbose,
   quick,
+  nobuckets,
   nodescribe,
   nographs
   ) :

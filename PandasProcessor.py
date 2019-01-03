@@ -35,6 +35,7 @@ class PandasProcessor() :
     self.quick=self.p['quick']
     self.nodescribe=self.p['nodescribe']
     self.nographs=self.p['nographs']
+    self.nobuckets=self.p['nobuckets']
     self.ppregex=self.p['ppregex']
     self.ppregexclude=self.p['ppregexclude']
     self.timeregex=self.p['timeregex']
@@ -81,28 +82,41 @@ class PandasProcessor() :
 
 
   #--------------------------------------------------------------------------------------
-  def myGraphs(self,datas,title,describe=['Agent','PurePath','Application']) :
-    logging.warning("myGraphs begin " + title)
-    if datas.empty :
-      return
-    self.p['out'].h3("Statistics and graph : " + title)
+  def myBuckets(self,datas,title):
+    logging.warning("buckets begin " + title)
+    self.p['out'].h4("Buckets for " + title)
     bins=pd.cut(datas['ResponseTime'],self.buckets)
     logging.warning("datas binning " + title)
-    #bins=pd.cut(datas['ResponseTime'],3)
     dg=datas.groupby(bins)['ResponseTime']
     logging.warning("datas binned " + title)
-    self.p['out'].h4("Buckets for " + title)
-    if not self.nographs :
+    if not self.nobuckets :
       self.grapher.myPlotBar(dg,'Buckets for ' + title)
-    else : 
+    else :
       self.p['out'].out(title + " buckets",dg.describe(percentiles=self.percentiles))
-    dg=datas.groupby(self.p['timeGroupby'])['ResponseTime']
+    logging.warning("buckets end " + title)
+
+  #--------------------------------------------------------------------------------------
+  def describe(self,datas,title,describe):
+    logging.warning("describe begin " + title)
     self.p['out'].h4("Grouping for " + title)
     if self.nodescribe :
       self.groupByDescribe(datas,'PurePath',title)
     else :
       for d in describe :
         self.groupByDescribe(datas,[d],title)
+    logging.warning("describe end " + title)
+
+  #--------------------------------------------------------------------------------------
+  def myGraphs(self,datas,title,describe=['Agent','PurePath','Application']) :
+    logging.warning("myGraphs begin " + title)
+    if datas.empty :
+      return
+    self.p['out'].h3("Statistics and graph : " + title)
+
+    self.myBuckets(datas,title) 
+    self.describe(datas,title,describe)
+
+    dg=datas.groupby(self.p['timeGroupby'])['ResponseTime']
     if self.nographs :
       #self.p['out'].out(title, datas.groupby('PurePath').describe(percentiles=self.percentiles))
       pass
@@ -119,8 +133,6 @@ class PandasProcessor() :
   #--------------------------------------------------------------------------------------
   def groupByDescribe(self,datas,grps,title='') :
     logging.warning("groupByDescribe " + str(grps))
-    #if self.nodescribe :
-    #  return
     if datas.empty :
       return
     dg=datas.groupby(grps)['ResponseTime']
