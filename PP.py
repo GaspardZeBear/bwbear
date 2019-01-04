@@ -1,15 +1,17 @@
 import sys
 import logging
 from PandasProcessor import *
+from SQLProcessor import *
 from Param import *
 import click
 
+#--------------------------------------------------------------------------------------
 @click.group()
-def main():
+def main1():
     pass
 
 #--------------------------------------------------------------------------------------
-@main.command()
+@main1.command()
 @click.option('--datafile', help='datafile')
 @click.option('--formatfile',help='formatfile')
 @click.option('--output', default='html')
@@ -31,7 +33,6 @@ def main():
 @click.option('--nobuckets', is_flag=True, default=False)
 @click.option('--nodescribe', is_flag=True, default=False)
 @click.option('--nographs', is_flag=True, default=False)
-
 def ppanalyze(
   datafile,
   formatfile,
@@ -85,7 +86,7 @@ def ppanalyze(
   l['out'].close()
 
 #--------------------------------------------------------------------------------------
-@main.command()
+@main1.command()
 def ppparams() :
   p=Param()
   p.processParam()
@@ -94,9 +95,58 @@ def ppparams() :
     print(pp + " : " + str(l[pp]))
 
 #--------------------------------------------------------------------------------------
+@click.group()
+
+#--------------------------------------------------------------------------------------
+def main2():
+    pass
+
+#--------------------------------------------------------------------------------------
+@main2.command()
+@click.option('--file1', help='file1')
+@click.option('--file2',help='file2')
+@click.option('--output', default='html')
+@click.option('--highresponsetime', default=5000)
+@click.option('--autofocusmean', default=100)
+@click.option('--autofocuscount', default=30)
+@click.option('--sqlregex', default='')
+@click.option('--sqlregexclude', default='')
+@click.option('--verbose', is_flag=True, default=False)
+def sqlcompare(
+  file1,
+  file2,
+  output,
+  highresponsetime,
+  autofocusmean,
+  autofocuscount,
+  sqlregex,
+  sqlregexclude,
+  verbose,
+  ) :
+  p=Param()
+  p.set('file1',file1)
+  p.set('file2',file2)
+  p.set('verbose',verbose)
+  p.set('output',output)
+  p.set('highResponseTime',highresponsetime)
+  p.set('sqlregex',sqlregex)
+  p.set('sqlregexclude',sqlregexclude)
+  p.set('autofocuscount',autofocuscount)
+  p.set('autofocusmean',autofocusmean)
+  p.processParam()
+  l=p.getAll()
+  pp=SQLProcessor(p)
+  pp.setBehavior()
+  pp.go()
+  l=p.getAll()
+  l['out'].close()
+
+cli = click.CommandCollection(sources=[main1, main2])
+
+#--------------------------------------------------------------------------------------
 if __name__ == '__main__':
   #logging.warning("Start")
   #ppanalyze()
-  main()
+  cli()
   #logging.warning("End")
 

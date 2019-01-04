@@ -89,10 +89,11 @@ class PandasProcessor() :
     logging.warning("datas binning " + title)
     dg=datas.groupby(bins)['ResponseTime']
     logging.warning("datas binned " + title)
+    self.p['out'].out(title + " buckets",dg.describe(percentiles=self.percentiles))
     if not self.nobuckets :
       self.grapher.myPlotBar(dg,'Buckets for ' + title)
-    else :
-      self.p['out'].out(title + " buckets",dg.describe(percentiles=self.percentiles))
+    #else :
+    #  self.p['out'].out(title + " buckets",dg.describe(percentiles=self.percentiles))
     logging.warning("buckets end " + title)
 
   #--------------------------------------------------------------------------------------

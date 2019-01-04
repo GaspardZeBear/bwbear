@@ -37,11 +37,13 @@ class Param() :
       s += " --" + k + " " + str(self.p[k])
     return(s)
 
+  #---------------------------------------------------------------------------------------------------
   def processParam(self) :
     if 'verbose' in self.p and self.p['verbose'] :
       logging.basicConfig(format="%(asctime)s f=%(funcName)s %(levelname)s %(message)s", level=logging.DEBUG)
     else :
       logging.basicConfig(format="%(asctime)s f=%(funcName)s %(levelname)s %(message)s", level=logging.WARNING)
+
     logging.warning("Logging initialized")
     if 'quick' not in self.p :
       self.p['quick'] = False
@@ -53,10 +55,13 @@ class Param() :
       self.p['nographs'] = False
     if 'output' in self.p :
       if self.p['output'] ==  'html' :
+        logging.warning("Output HTML")
         self.p['out']=OutputHtml()
       else :
+        logging.warning("Output TTy")
         self.p['out']=OutputTty()
     else :
+        logging.warning("Default Output TTy")
         self.p['out']=OutputTty()
     self.p['out'].open()
     if 'buckets' not in self.p :
@@ -79,6 +84,8 @@ class Param() :
     else :
       self.p['steps']=[s for s in self.p['steps'].split(',')]
 
+    if 'datafile' not in self.p :
+      self.p['datafile']=''
     if 'workdir' not in self.p :
       self.p['workdir']=self.p['datafile'] + '.workdir'
 

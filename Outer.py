@@ -1,3 +1,4 @@
+import logging
 #--------------------------------------------------------------------------------------
 class Out() :
 
@@ -110,6 +111,7 @@ class OutputHtml(Out) :
     """
 
     self.head=head
+    logging.warning(head)
 
   #--------------------------------------------------------------------------------------
   def close(self) :
@@ -167,11 +169,11 @@ class OutputHtml(Out) :
     self.addToContent("<p>"+p+"</p>")
 
   #--------------------------------------------------------------------------------------
-  def out(self,title,o) :
+  def out(self,title,o,escape=True) :
     self.addToContent("<br/><b>"+title+"</b>")
     if o.empty :
       return 
-    self.addToContent(o.to_html(border=1))
+    self.addToContent(o.to_html(border=1,escape=escape))
 
   #--------------------------------------------------------------------------------------
   def tables(self,ths) :
