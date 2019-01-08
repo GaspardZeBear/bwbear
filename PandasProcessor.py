@@ -212,6 +212,11 @@ class PandasProcessor() :
   def printOK(self) :
     self.p['out'].h2("Analyzing " + str(len(self.dfOK)) + " transactions in status OK (" + str(self.filtered) + " have been filtered) ")
     self.myGraphs(self.dfOK, 'OK',["Agent","Application"])
+    if not self.quick :
+      for agent in self.dfOK['Agent'].unique() :
+        self.myGraphs(self.dfOK[self.dfOK['Agent'] == agent ], 'Agent  Detail' + agent)
+      for application in self.dfOK['Application'].unique() :
+        self.myGraphs(self.dfOK[self.dfOK['Application'] == application ], 'Application  Detail' + application)
 
   #--------------------------------------------------------------------------------------
   @Step('KO')
