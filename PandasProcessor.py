@@ -41,6 +41,7 @@ class PandasProcessor() :
     self.timeregex=self.p['timeregex']
     self.percentiles=[.50,.95,.99]
     self.buckets=self.p['buckets']
+    self.autofocus=[]
     self.fileCounter=0
     self.steps=self.p['steps']
     self.grapher=PandasGrapher(self.param)
@@ -79,7 +80,6 @@ class PandasProcessor() :
             return True
     else:
         return False
-
 
   #--------------------------------------------------------------------------------------
   def myBuckets(self,datas,title):
@@ -140,15 +140,36 @@ class PandasProcessor() :
     self.p['out'].out("GroupBy "  +  str(grps) + " " + title + " statistics" ,dg.describe(percentiles=self.percentiles))
     if not self.nographs :
       self.grapher.myPlotBar(datas.groupby(grps)['ResponseTime'],str(grps) + " " + title)
+
+
+  #--------------------------------------------------------------------------------------
+  def getFocusedPurepaths(self) :
+    return(self.autofocus)
+
+  #--------------------------------------------------------------------------------------
+  def setAutofocus(self,autofocus) :
+    self.autofocus=autofocus
   
   #--------------------------------------------------------------------------------------
-  def autofocus(self,datas) :
+  def computeAutofocus(self,datas) :
     dg=datas.groupby('PurePath',as_index=False).agg({"ResponseTime": ['mean', 'count']})
     #dg.columns=dg.columns.droplevel(level=0)
     dg.columns=["_".join(x) for x in dg.columns.ravel()]
     dg1=dg[ ( dg['ResponseTime_mean'] >= self.p['autofocusmean'] ) & ( dg['ResponseTime_count'] >= self.p['autofocuscount'] ) ]
     return(dg1["PurePath_"].values.tolist())
-  
+
+  #--------------------------------------------------------------------------------------
+  def buildDataframes(self) :
+    rawdatas=self.DFF.getDf()
+    rawdatas=self.filter(rawdatas)
+    self.dfOK=rawdatas[ ( rawdatas['ErrorState'] == 'OK' ) ]
+    self.dfKO=rawdatas[ ( rawdatas['ErrorState'] != 'OK') ]
+    self.dfall=pd.DataFrame(self.dfOK.groupby(self.p['timeGroupby'])['StartTime'].count().apply(lambda x: 0))
+    self.grapher.setDfall(self.dfall)
+    self.setAutofocus(self.computeAutofocus(self.dfOK))
+    self.dfFocus=self.dfOK[ self.dfOK['PurePath'].isin( self.getFocusedPurepaths()) ]
+    self.dfHigh=self.dfOK[ ( self.dfOK['ResponseTime'] > self.p['highResponseTime'] ) ]
+
   #--------------------------------------------------------------------------------------
   def filter(self,rawdatas) :
     sizein=len(rawdatas)
@@ -230,7 +251,7 @@ class PandasProcessor() :
     self.p['out'].h2("Analyzing " + str(len(self.dfFocus)) + " focused transactions")
     self.myGraphs(self.dfFocus,'Focus')
     #for pp in self.dfOK['PurePath'].unique() :
-    for pp in self.DFF.getFocusedPurepaths() :
+    for pp in self.getFocusedPurepaths() :
       self.myGraphs(self.dfOK[self.dfOK['PurePath'] == pp], 'Focus ' + pp)
 
   #--------------------------------------------------------------------------------------
@@ -252,18 +273,6 @@ class PandasProcessor() :
     if not self.quick :
       self.p['out'].h2("Detail of transactions in error state")
       self.p['out'].out("Samples KO failed ",self.dfKO)
-
-  #--------------------------------------------------------------------------------------
-  def buildDataframes(self) :
-    rawdatas=self.DFF.getDf()
-    rawdatas=self.filter(rawdatas)
-    self.dfOK=rawdatas[ ( rawdatas['ErrorState'] == 'OK' ) ]
-    self.dfKO=rawdatas[ ( rawdatas['ErrorState'] != 'OK') ]
-    self.dfall=pd.DataFrame(self.dfOK.groupby(self.p['timeGroupby'])['StartTime'].count().apply(lambda x: 0))
-    self.grapher.setDfall(self.dfall)
-    self.DFF.setAutofocus(self.autofocus(self.dfOK))
-    self.dfFocus=self.dfOK[ self.dfOK['PurePath'].isin( self.DFF.getFocusedPurepaths()) ]
-    self.dfHigh=self.dfOK[ ( self.dfOK['ResponseTime'] > self.p['highResponseTime'] ) ]
 
   #--------------------------------------------------------------------------------------
   def go(self) :

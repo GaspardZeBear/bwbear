@@ -19,7 +19,6 @@ class DFFormatter() :
     logging.warning("DFFormatter begins")
     self.file=p['datafile']
     self.fconf=p['formatfile']
-    self.out=p['out']
     self.decimal=p['decimal']
     self.infos=dict()
     self.infos['Datafile']=self.file
@@ -62,20 +61,6 @@ class DFFormatter() :
     if info in self.infos :
       return(self.infos[info])
     return
-
-  #--------------------------------------------------------------------------------------
-  def getFocusedPurepaths(self) :
-    #logging.warning("focus")
-    #logging.warning(self.focus)
-    #logging.warning("autofocus")
-    #logging.warning(self.autofocus)
-    return(self.focus + self.autofocus)
-
-  #--------------------------------------------------------------------------------------
-  def setAutofocus(self,autofocus) :
-    self.autofocus=autofocus
-    #logging.warning("autofocus")
-    #logging.warning(self.autofocus)
 
   #--------------------------------------------------------------------------------------
   def coalesceUrl(self,u) :
