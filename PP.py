@@ -2,10 +2,11 @@ import sys
 import logging
 from PandasProcessor import *
 from SQLProcessor import *
+from PPCompareProcessor import *
 from Param import *
 import click
 
-#--------------------------------------------------------------------------------------
+#======================================================================================
 @click.group()
 def main1():
     pass
@@ -97,10 +98,8 @@ def ppparams() :
   for pp in sorted(l):
     print(pp + " : " + str(l[pp]))
 
-#--------------------------------------------------------------------------------------
+#======================================================================================
 @click.group()
-
-#--------------------------------------------------------------------------------------
 def main2():
     pass
 
@@ -144,12 +143,54 @@ def sqlcompare(
   l=p.getAll()
   l['out'].close()
 
-cli = click.CommandCollection(sources=[main1, main2])
+#======================================================================================
+@click.group()
+def main3():
+    pass
 
 #--------------------------------------------------------------------------------------
+@main3.command()
+@click.option('--file1', help='file1')
+@click.option('--file2',help='file2')
+@click.option('--output', default='html')
+@click.option('--highresponsetime', default=5000)
+@click.option('--autofocusmean', default=100)
+@click.option('--autofocuscount', default=30)
+@click.option('--ppregex', default='')
+@click.option('--ppregexclude', default='')
+@click.option('--verbose', is_flag=True, default=False)
+def ppcompare(
+  file1,
+  file2,
+  output,
+  highresponsetime,
+  autofocusmean,
+  autofocuscount,
+  ppregex,
+  ppregexclude,
+  verbose,
+  ) :
+  p=Param()
+  p.set('file1',file1)
+  p.set('file2',file2)
+  p.set('verbose',verbose)
+  p.set('output',output)
+  p.set('highResponseTime',highresponsetime)
+  p.set('ppregex',ppregex)
+  p.set('ppregexclude',ppregexclude)
+  p.set('autofocuscount',autofocuscount)
+  p.set('autofocusmean',autofocusmean)
+  p.processParam()
+  l=p.getAll()
+  pp=PPCompareProcessor(p)
+  pp.setBehavior()
+  pp.go()
+  l=p.getAll()
+  l['out'].close()
+
+
+#--------------------------------------------------------------------------------------
+cli = click.CommandCollection(sources=[main1, main2, main3])
 if __name__ == '__main__':
-  #logging.warning("Start")
-  #ppanalyze()
   cli()
-  #logging.warning("End")
 
