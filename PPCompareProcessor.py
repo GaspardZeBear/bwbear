@@ -20,8 +20,9 @@ class PPFramor() :
   sqlNum=0
 
   #--------------------------------------------------------------------------------------
-  def __init__(self,param,file) :
+  def __init__(self,param,file,tsm=None) :
     self.param=param
+    self.tsm=tsm
     self.p=self.param.getAll()
     logging.warning("PPFramor begins")
     self.file=file
@@ -55,10 +56,17 @@ class PPFramor() :
 #--------------------------------------------------------------------------------------
   def setRawdatas(self) :
     self.datas=pd.read_csv(self.file,sep=';',decimal=self.decimal)
+    self.tsmList=self.datas['ts10m'].unique()
+    if self.tsm is not None:
+      self.datas=self.datas[ self.datas['ts10m'] == self.tsm ]
     self.rawdatas=self.datas.groupby('PurePath')['ResponseTime'].describe(percentiles=PPFramor.percentiles)
     self.p['out'].h2("PP from " + self.file)
     with pd.option_context('display.max_rows', None, 'display.max_colwidth', 0) :
       self.p['out'].out("PP",self.rawdatas,False)
+
+#--------------------------------------------------------------------------------------
+  def getTsmlist(self,tsm) :
+    return(self.tsmList)
 
 #--------------------------------------------------------------------------------------
 class PPComparator() :
@@ -102,8 +110,8 @@ class PPComparator() :
 
   #--------------------------------------------------------------------------------------
   def go(self) :
-    print(self.df1)
-    print(self.df2)
+    #print(self.df1)
+    #print(self.df2)
     dfm=pd.merge(self.df1,self.df2,on='PurePath',how='outer')
     dfm['DeltaCount']=dfm.apply(lambda x: x['count_y'] - x['count_x'],axis=1 ) 
     dfm['DeltaMean']=dfm.apply(lambda x: x['mean_y'] - x['mean_x'],axis=1 ) 
@@ -136,9 +144,18 @@ class PPCompareProcessor() :
   def __init__(self,param) :
     self.param=param
     self.p=self.param.getAll()
-    self.p['out'].h1('PPCompareProcessor compare ' + self.p['file1'] + ' and ' + self.p['file2'])
-    self.df1=PPFramor(self.param,self.p['file1']).getRawdatas()
-    self.df2=PPFramor(self.param,self.p['file2']).getRawdatas()
+    self.dfs=[]
+    logging.warning(self.p)
+    if ('file2' in self.p) & (self.p['file2'] is not None) :
+      self.p['out'].h1('PPCompareProcessor compare ' + self.p['file1'] + ' and ' + self.p['file2'])
+      self.dfs.append(PPFramor(self.param,self.p['file1']).getRawdatas())
+      self.dfs.append(PPFramor(self.param,self.p['file2']).getRawdatas())
+    else :
+      self.p['out'].h1('PPCompareProcessor autocompare ' + self.p['file1'])
+      fr=PPFramor(self.param,self.p['file1'])
+      for tsm in fr.getTsmlist('ts10m') :
+        self.dfs.append(PPFramor(self.param,self.p['file1'],tsm).getRawdatas())
+      pass
 
   #--------------------------------------------------------------------------------------
   def setBehavior(self) :
@@ -149,5 +166,6 @@ class PPCompareProcessor() :
 
   #--------------------------------------------------------------------------------------
   def go(self) :
-    PPComparator(self.param,self.df1,self.df2)
+    for i in range(0,len(self.dfs)-1) :
+      PPComparator(self.param,self.dfs[i],self.dfs[i+1])
 
