@@ -14,7 +14,7 @@
 "FOCUS": [],
 "DROPROWS" : ["assets",".png"],
 "PPALIAS": { },
-"DROPCOLUMNS": ["Breakdown","Top Findings","Duration [ms]"],
-"RENAMECOLUMNS": { "Error State":"ErrorState", "Response Time [ms]":"ResponseTime", "Start Time":"StartTime" }
+"XDROPCOLUMNS": ["Breakdown","Top Findings","Duration [ms]"],
+"XRENAMECOLUMNS": { "Error State":"ErrorState", "Response Time [ms]":"ResponseTime", "Start Time":"StartTime" }
 }
 

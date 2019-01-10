@@ -90,7 +90,7 @@ class PandasGrapher() :
     ax.minorticks_on()
     ax.xaxis.grid(True, which='minor', linestyle='-', linewidth=0.25)
     axm=fig.add_subplot(122)
-    dfm.plot.barh(color='green',ax=axm,grid=True)
+    dfm.plot.barh(color='green',ax=axm,grid=True,title=title)
     axm.minorticks_on()
     axm.xaxis.grid(True, which='minor', linestyle='-', linewidth=0.25)
     axm.get_yaxis().set_ticks([])

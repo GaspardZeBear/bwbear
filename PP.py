@@ -28,6 +28,7 @@ def main1():
 @click.option('--steps', default='')
 @click.option('--ppregexclude', default='')
 @click.option('--workdir', default='')
+@click.option('--type', default='dynatrace')
 @click.option('--verbose', is_flag=True, default=False)
 @click.option('--quick', is_flag=True, default=False)
 @click.option('--nobuckets', is_flag=True, default=False)
@@ -50,6 +51,7 @@ def ppanalyze(
   steps,
   ppregexclude,
   workdir,
+  type,
   verbose,
   quick,
   nobuckets,
@@ -74,6 +76,7 @@ def ppanalyze(
   p.set('ppregex',ppregex)
   p.set('timeregex',timeregex)
   p.set('ppregexclude',ppregexclude)
+  p.set('type',type)
   p.set('timeGroupby',timegroupby)
   p.set('autofocusmean',autofocusmean)
   p.set('autofocuscount',autofocuscount)

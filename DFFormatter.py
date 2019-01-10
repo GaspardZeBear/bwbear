@@ -15,8 +15,18 @@ class DFFormatter() :
   pd.options.display.float_format = '{:.0f}'.format
 
   #--------------------------------------------------------------------------------------
+  @staticmethod
+  def getFromFactory(type,params) :
+    if type == 'dynatrace' :
+      return(DFFormatterDynatrace(params))
+    else :
+      return(DFFormatterJmeter(params))
+
+  #--------------------------------------------------------------------------------------
   def __init__(self,p) :
     logging.warning("DFFormatter begins")
+    logging.warning("scriptpath : " + p['scriptpath'])
+    self.p=p
     self.file=p['datafile']
     self.fconf=p['formatfile']
     self.decimal=p['decimal']
@@ -34,18 +44,18 @@ class DFFormatter() :
       self.autofocus=[]
       self.focus=self.json['FOCUS']
       self.ppalias=self.json['PPALIAS']
-      self.dropcolumns=self.json['DROPCOLUMNS']
+      #self.dropcolumns=self.json['DROPCOLUMNS']
       self.droprows=self.json['DROPROWS']
-      self.renamecolumns=self.json['RENAMECOLUMNS']
+      #self.renamecolumns=self.json['RENAMECOLUMNS']
       logging.warning(self.json)
 
     self.df=None
     pd.set_option("display.max_rows",None)
     if self.file.endswith('.pan') :
       self.decimal='.'
-      self.getRawdatas(False)
+      self.formatDf(False)
     else :
-      self.getRawdatas(True)
+      self.formatDf(True)
     logging.warning("DFFormatter ends")
 
   #--------------------------------------------------------------------------------------
@@ -79,27 +89,47 @@ class DFFormatter() :
       return(self.ppalias[u])
     return(u)
 
+  #--------------------------------------------------------------------------------------
+  def getColumnsToProcess(self,f) :
+    with open(self.p['scriptpath']+"/"+f, 'r') as j:
+      self.json = json.load(j)
+      self.dropcolumns=self.json['DROPCOLUMNS']
+      #[str(x) for x in self.dropcolumns]
+      self.renamecolumns=self.json['RENAMECOLUMNS']
 
-#--------------------------------------------------------------------------------------
+  #--------------------------------------------------------------------------------------
+  def preProcess(self,df) :
+    return(df)
+
+  #--------------------------------------------------------------------------------------
   def getRawdatas(self,wrangle=True) :
     rawdatas=pd.read_csv(self.file,sep=';',decimal=self.decimal)
+    logging.warning(rawdatas.dtypes)
     self.infos['HeadInitial']=rawdatas.head(2)
     self.infos['TailInitial']=rawdatas.tail(2)
-    
+    logging.warning("Head initial")
+    logging.warning(self.infos['HeadInitial'])
+
     if wrangle :
       self.wrangle=True
       logging.warning("Wrangling file " + self.file)
-      logging.warning("dropcolumns " + str(self.dropcolumns))
       rawdatas.drop (
         self.dropcolumns,
         inplace=True,axis=1
-      )   
-      logging.warning("renamecolumns " + str(self.renamecolumns))
+      )
       rawdatas.rename (self.renamecolumns,
         inplace=True,axis=1)
       self.infos['DescribeInitial']=rawdatas['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame()
+
+      logging.warning("Before preProcess")
+      logging.warning(rawdatas.head())
+      rawdatas=self.preProcess(rawdatas) 
+      logging.warning("After preProcess")
+      logging.warning(rawdatas.head())
+
       for pp in self.droprows :
         rawdatas=rawdatas[rawdatas.PurePath.str.contains(pp)==False]
+      logging.warning("After dropRows")
       logging.warning(rawdatas.head())
       rawdatas['PurePath']=rawdatas['PurePath'].map(self.coalesceUrl)
       rawdatas['StartTimeStr']=rawdatas['StartTime']
@@ -110,6 +140,8 @@ class DFFormatter() :
       rawdatas['ts1h']=rawdatas.apply(lambda x: x['StartTime'].floor('1h'),axis=1)
       rawdatas['Error']=rawdatas.apply(lambda x: 0 if x['ErrorState'] == 'OK' else 1,axis=1)
       rawdatas.to_csv(self.file + '.pan',sep=';',index=False)
+      logging.warning("Ready ")
+      logging.warning(rawdatas.head())
     else :
       self.infos['DescribeInitial']=rawdatas['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame()
       rawdatas['StartTime']=pd.to_datetime(rawdatas['StartTime'],infer_datetime_format=True)
@@ -120,3 +152,33 @@ class DFFormatter() :
     self.infos['HeadFinal']=rawdatas.head(2)
     self.infos['TailFinal']=rawdatas.tail(2)
     self.df=rawdatas
+
+#--------------------------------------------------------------------------------------
+class DFFormatterDynatrace(DFFormatter) :
+#--------------------------------------------------------------------------------------
+  def formatDf(self,wrangle=True) :
+    self.getColumnsToProcess('dynatrace.json')  
+    self.getRawdatas(wrangle)
+
+#--------------------------------------------------------------------------------------
+class DFFormatterJmeter(DFFormatter) :
+#--------------------------------------------------------------------------------------
+
+  #--------------------------------------------------------------------------------------
+  def preProcess(self,df) :
+    logging.warning(df.head(5))
+    df['StartTime']=pd.to_datetime(df['StartTime'],unit='ms')
+    logging.warning(df.head(5))
+    df['ErrorState']=df.apply(lambda x: 'OK' if x['ErrorState'] else 'KO',axis=1)
+    df['Agent']="_agent"
+    df['Application']="_application"
+    return(df)
+
+  #--------------------------------------------------------------------------------------
+  def formatDf(self,wrangle=True) :
+    self.getColumnsToProcess('jmeter.json')  
+    logging.warning(wrangle)
+    self.getRawdatas(wrangle)
+    
+
+

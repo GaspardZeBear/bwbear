@@ -27,7 +27,8 @@ class PandasProcessor() :
   def __init__(self,param) :
     self.param=param
     self.setBehavior()
-    self.DFF=DFFormatter(self.p)
+    #self.DFF=DFFormatter.getFromFactory('dynatrace',self.p)
+    self.DFF=DFFormatter.getFromFactory(self.p['type'],self.p)
 
   #--------------------------------------------------------------------------------------
   def setBehavior(self) :

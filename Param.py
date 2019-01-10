@@ -1,36 +1,44 @@
 import logging
 import json
 from Outer import *
+import os
+import sys
 
-
+#---------------------------------------------------------------------------------------------------
 class Param() :
 
   graphStyles={
     "Mean" : { "color": "green", "linewidth" :2 , "point" : "go"},
-    "Q50" : { "color": "green", "linewidth" :0.2 , "point" : "g-"},
+    "Q50" : { "color": "cyan", "linewidth" :0.2 , "point" : "g-"},
     "Q95" : { "color": "yellow", "linewidth" :0.2 , "point" : "y+"},
     "Max" : { "color": "red", "linewidth" :0.2 , "point" : "ro"},
     "default" : { "color": "black", "linewidth" :1 , "point" : "go"}
   }
 
+  #---------------------------------------------------------------------------------------------------
   def __init__(self) :
     self.p={}
 
+  #---------------------------------------------------------------------------------------------------
   def set(self,key,value) :
     self.p[key]=value
 
+  #---------------------------------------------------------------------------------------------------
   def get(self,key) :
     return(self.p[key])
 
+  #---------------------------------------------------------------------------------------------------
   def getGraphStyle(self,key) :
     if key in Param.graphStyles :
       return(Param.graphStyles[key])
     else :
       return(Param.graphStyles["default"])
 
+  #---------------------------------------------------------------------------------------------------
   def getAll(self) :
     return(self.p)
 
+  #---------------------------------------------------------------------------------------------------
   def getAllAsString(self) :
     s=''
     for k in self.p :
@@ -39,6 +47,7 @@ class Param() :
 
   #---------------------------------------------------------------------------------------------------
   def processParam(self) :
+    self.p['scriptpath']=os.path.abspath(os.path.dirname(sys.argv[0]))
     if 'verbose' in self.p and self.p['verbose'] :
       logging.basicConfig(format="%(asctime)s f=%(funcName)s %(levelname)s %(message)s", level=logging.DEBUG)
     else :
@@ -89,6 +98,8 @@ class Param() :
     if 'workdir' not in self.p :
       self.p['workdir']=self.p['datafile'] + '.workdir'
 
+    if 'type' not in self.p :
+      self.p['type']='dynatrace'
     if 'decimal' not in self.p :
       self.p['decimal']=','
     if 'ymax' not in self.p :

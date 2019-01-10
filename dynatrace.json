@@ -1,0 +1,10 @@
+{
+  "DROPCOLUMNS" : ["Breakdown","Size","Top Findings","Duration [ms]"],   
+  "RENAMECOLUMNS" : {
+        "Error State" : "ErrorState",
+        "PurePath" : "PurePath",
+        "Response Time [ms]" : "ResponseTime",
+        "Start Time" : "StartTime"
+      }
+}
+
