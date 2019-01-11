@@ -54,15 +54,19 @@ class PPFramor() :
     return(self.rawdatas)
 
 #--------------------------------------------------------------------------------------
+  def getFile(self) :
+    return(self.file)
+
+#--------------------------------------------------------------------------------------
   def setRawdatas(self) :
     self.datas=pd.read_csv(self.file,sep=';',decimal=self.decimal)
     self.tsmList=self.datas['ts10m'].unique()
     if self.tsm is not None:
       self.datas=self.datas[ self.datas['ts10m'] == self.tsm ]
     self.rawdatas=self.datas.groupby('PurePath')['ResponseTime'].describe(percentiles=PPFramor.percentiles)
-    self.p['out'].h2("PP from " + self.file)
-    with pd.option_context('display.max_rows', None, 'display.max_colwidth', 0) :
-      self.p['out'].out("PP",self.rawdatas,False)
+    #self.p['out'].h2("PP from " + self.file)
+    #with pd.option_context('display.max_rows', None, 'display.max_colwidth', 0) :
+    #  self.p['out'].out("PP",self.rawdatas,False)
 
 #--------------------------------------------------------------------------------------
   def getTsmlist(self,tsm) :
@@ -72,36 +76,44 @@ class PPFramor() :
 class PPComparator() :
 
   #--------------------------------------------------------------------------------------
-  def __init__(self,param,df1,df2) :
+  def __init__(self,param,f1,f2) :
     self.param=param
     self.p=self.param.getAll()
-    self.df1=df1
-    self.df2=df2
+    self.f1=f1
+    self.f2=f2
+    self.df1=f1.getRawdatas()
+    self.df2=f2.getRawdatas()
     self.go()
 
   @staticmethod
   #--------------------------------------------------------------------------------------
-  def deltaCountPercent(x) :
-    return(PPComparator.deltaPercent('count',x))
+  def deltaCountPe(x) :
+    return(PPComparator.deltaPe('count',x))
 
   @staticmethod
   #--------------------------------------------------------------------------------------
-  def deltaMeanPercent(x) :
-    return(PPComparator.deltaPercent('mean',x))
+  def deltaStdPe(x) :
+    return(PPComparator.deltaPe('std',x))
+
 
   @staticmethod
   #--------------------------------------------------------------------------------------
-  def deltaP50Percent(x) :
-    return(PPComparator.deltaPercent('50%',x))
+  def deltaMeanPe(x) :
+    return(PPComparator.deltaPe('mean',x))
 
   @staticmethod
   #--------------------------------------------------------------------------------------
-  def deltaP95Percent(x) :
-    return(PPComparator.deltaPercent('95%',x))
+  def deltaP50Pe(x) :
+    return(PPComparator.deltaPe('50%',x))
 
   @staticmethod
   #--------------------------------------------------------------------------------------
-  def deltaPercent(field,x) :
+  def deltaP95Pe(x) :
+    return(PPComparator.deltaPe('95%',x))
+
+  @staticmethod
+  #--------------------------------------------------------------------------------------
+  def deltaPe(field,x) :
     kx=field+"_x"
     ky=field+"_y"
     if x[kx] > 0 :
@@ -113,28 +125,31 @@ class PPComparator() :
     #print(self.df1)
     #print(self.df2)
     dfm=pd.merge(self.df1,self.df2,on='PurePath',how='outer')
+    dfm['DeltaStd']=dfm.apply(lambda x: x['std_y'] - x['std_x'],axis=1 ) 
     dfm['DeltaCount']=dfm.apply(lambda x: x['count_y'] - x['count_x'],axis=1 ) 
     dfm['DeltaMean']=dfm.apply(lambda x: x['mean_y'] - x['mean_x'],axis=1 ) 
     dfm['DeltaP50']=dfm.apply(lambda x: x['50%_y'] - x['50%_x'],axis=1 ) 
     dfm['DeltaP95']=dfm.apply(lambda x: x['95%_y'] - x['95%_x'],axis=1 ) 
-    dfm['DeltaCountPercent']=dfm.apply(PPComparator.deltaCountPercent,axis=1 ) 
-    dfm['DeltaMeanPercent']=dfm.apply(PPComparator.deltaMeanPercent,axis=1 ) 
-    dfm['DeltaP50Percent']=dfm.apply(PPComparator.deltaP50Percent,axis=1 ) 
-    dfm['DeltaP95Percent']=dfm.apply(PPComparator.deltaP95Percent,axis=1 ) 
+    dfm['DeltaStdPe']=dfm.apply(PPComparator.deltaStdPe,axis=1 ) 
+    dfm['DeltaCountPe']=dfm.apply(PPComparator.deltaCountPe,axis=1 ) 
+    dfm['DeltaMeanPe']=dfm.apply(PPComparator.deltaMeanPe,axis=1 ) 
+    dfm['DeltaP50Pe']=dfm.apply(PPComparator.deltaP50Pe,axis=1 ) 
+    dfm['DeltaP95Pe']=dfm.apply(PPComparator.deltaP95Pe,axis=1 ) 
     filter=False
     if filter :
       dfm=dfm[(dfm['count_x'] > self.p['autofocuscount']) & (dfm['count_y'] > self.p['autofocuscount']) ]
       dfm=dfm[(dfm['mean_x'] > self.p['autofocusmean']) & (dfm['mean_y'] > self.p['autofocusmean']) ]
-      dfm=dfm[(abs(dfm['DeltaCountPercent']) > 10)]
+      dfm=dfm[(abs(dfm['DeltaCountPe']) > 10)]
     logging.warning(dfm)
     if dfm.size == 0 :
       return
     with pd.option_context('display.max_rows', None) :
-      self.p['out'].h2("Comparison of requests")
-      self.p['out'].out("Compare",dfm[['count_x','count_y','DeltaCount','DeltaCountPercent',
-          'mean_x','mean_y','DeltaMean','DeltaMeanPercent',
-          '50%_x','50%_y','DeltaP50','DeltaP50Percent',
-          '95%_x','95%_y','DeltaP95','DeltaP95Percent']],
+      self.p['out'].h2("Comparison of requests : x=" + self.f1.getFile() + " y=" + self.f2.getFile())
+      self.p['out'].out("Compare",dfm[['count_x','count_y','DeltaCount','DeltaCountPe',
+          'mean_x','mean_y','DeltaMean','DeltaMeanPe',
+          'std_x','std_y','DeltaStd','DeltaStdPe',
+          '50%_x','50%_y','DeltaP50','DeltaP50Pe',
+          '95%_x','95%_y','DeltaP95','DeltaP95Pe']],
           False)
 
 #--------------------------------------------------------------------------------------
@@ -148,13 +163,13 @@ class PPCompareProcessor() :
     logging.warning(self.p)
     if ('file2' in self.p) & (self.p['file2'] is not None) :
       self.p['out'].h1('PPCompareProcessor compare ' + self.p['file1'] + ' and ' + self.p['file2'])
-      self.dfs.append(PPFramor(self.param,self.p['file1']).getRawdatas())
-      self.dfs.append(PPFramor(self.param,self.p['file2']).getRawdatas())
+      self.dfs.append(PPFramor(self.param,self.p['file1']))
+      self.dfs.append(PPFramor(self.param,self.p['file2']))
     else :
       self.p['out'].h1('PPCompareProcessor autocompare ' + self.p['file1'])
       fr=PPFramor(self.param,self.p['file1'])
       for tsm in fr.getTsmlist('ts10m') :
-        self.dfs.append(PPFramor(self.param,self.p['file1'],tsm).getRawdatas())
+        self.dfs.append(PPFramor(self.param,self.p['file1'],tsm))
       pass
 
   #--------------------------------------------------------------------------------------
