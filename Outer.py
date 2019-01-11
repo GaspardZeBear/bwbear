@@ -20,10 +20,15 @@ class OutputHtml(Out) :
   def __init__(self) :
     self.tableOfContent=[]
     self.content=[]
+    self.PPdiv="PP"
 
   #--------------------------------------------------------------------------------------
   def addToContent(self,txt) :
     self.content.append(txt)
+
+  #--------------------------------------------------------------------------------------
+  def setPPdiv(self,div) :
+    self.PPdiv=div
 
   #--------------------------------------------------------------------------------------
   def open(self) :
@@ -104,6 +109,12 @@ class OutputHtml(Out) :
     ul {
         list-style-type: none;
     }
+    .redBg {
+    background: red;
+    }
+    .greenBg {
+    background: lightgreen;
+    }
     </style>
    <script
   src="https://code.jquery.com/jquery-3.3.1.min.js"
@@ -115,8 +126,32 @@ class OutputHtml(Out) :
   crossorigin="anonymous"></script>
 <script src="https://mottie.github.io/tablesorter/dist/js/jquery.tablesorter.min.js"></script>
   <script>
+
 $(document).ready((function() {
   $(".dataframe").tablesorter();
+  $("#PPCompareProcessor").css('background-color', 'white');
+  $("tr:even").css("background-color", "white");
+  $("tr:odd").css("background-color", "lightgrey");
+  $("td:nth-child(6)").each(function() {
+    if ( $(this).html() > 30 ) {
+    $(this).addClass('greenBg');
+    } 
+  });
+  $("td:nth-child(6)").each(function() {
+    if ( $(this).html() < -3 ) {
+    $(this).addClass('redBg');
+    } 
+  });
+  $("td:nth-child(10),td:nth-child(14),td:nth-child(18),td:nth-child(22)").each(function() {
+    if ( $(this).html() > 30 ) {
+    $(this).addClass('redBg');
+    } 
+  });
+  $("td:nth-child(10),td:nth-child(14),td:nth-child(18),td:nth-child(22)").each(function() {
+    if ( $(this).html() < -29) {
+    $(this).addClass('greenBg');
+    } 
+  });
 }));
   </script>
 </head>
@@ -139,9 +174,12 @@ $(document).ready((function() {
       #print("<li>" + c + "</li>")
     #print("</ul>")
     print("</div>")
+    print("<div>")
+    print("<div id=\""+self.PPdiv+"\">")
     print("<div id=\"content\">")
     for c in self.content :
       print(c)
+    print("</div>")
     print("</div>")
     print("</body>")
     print("</html>")
@@ -187,7 +225,7 @@ $(document).ready((function() {
     self.addToContent("<br/><b>"+title+"</b>")
     if o.empty :
       return 
-    self.addToContent(o.to_html(border=1,escape=escape))
+    self.addToContent(o.to_html(border=1,escape=escape,classes='table' + self.PPdiv))
 
   #--------------------------------------------------------------------------------------
   def tables(self,ths) :

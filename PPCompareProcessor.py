@@ -152,16 +152,16 @@ class PPComparator() :
     #print(self.df2)
     dfm=pd.merge(self.df1,self.df2,on='PurePath',how='outer')
     dfm.reset_index(inplace=True)
-    dfm['DeltaStd']=dfm.apply(lambda x: x['std_y'] - x['std_x'],axis=1 ) 
-    dfm['DeltaCount']=dfm.apply(lambda x: x['count_y'] - x['count_x'],axis=1 ) 
-    dfm['DeltaMean']=dfm.apply(lambda x: x['mean_y'] - x['mean_x'],axis=1 ) 
-    dfm['DeltaP50']=dfm.apply(lambda x: x['50%_y'] - x['50%_x'],axis=1 ) 
-    dfm['DeltaP95']=dfm.apply(lambda x: x['95%_y'] - x['95%_x'],axis=1 ) 
-    dfm['DeltaStdPe']=dfm.apply(PPComparator.deltaStdPe,axis=1 ) 
-    dfm['DeltaCountPe']=dfm.apply(PPComparator.deltaCountPe,axis=1 ) 
-    dfm['DeltaMeanPe']=dfm.apply(PPComparator.deltaMeanPe,axis=1 ) 
-    dfm['DeltaP50Pe']=dfm.apply(PPComparator.deltaP50Pe,axis=1 ) 
-    dfm['DeltaP95Pe']=dfm.apply(PPComparator.deltaP95Pe,axis=1 ) 
+    dfm['DStd']=dfm.apply(lambda x: x['std_y'] - x['std_x'],axis=1 ) 
+    dfm['DCount']=dfm.apply(lambda x: x['count_y'] - x['count_x'],axis=1 ) 
+    dfm['DMean']=dfm.apply(lambda x: x['mean_y'] - x['mean_x'],axis=1 ) 
+    dfm['DP50']=dfm.apply(lambda x: x['50%_y'] - x['50%_x'],axis=1 ) 
+    dfm['DP95']=dfm.apply(lambda x: x['95%_y'] - x['95%_x'],axis=1 ) 
+    dfm['DStdPe']=dfm.apply(PPComparator.deltaStdPe,axis=1 ) 
+    dfm['DCountPe']=dfm.apply(PPComparator.deltaCountPe,axis=1 ) 
+    dfm['DMeanPe']=dfm.apply(PPComparator.deltaMeanPe,axis=1 ) 
+    dfm['DP50Pe']=dfm.apply(PPComparator.deltaP50Pe,axis=1 ) 
+    dfm['DP95Pe']=dfm.apply(PPComparator.deltaP95Pe,axis=1 ) 
     dfm.fillna(value=0,inplace=True)
     filter=True
     if filter :
@@ -171,18 +171,18 @@ class PPComparator() :
         dfm=dfm[dfm['PurePath'].apply(self.regexcludeFilter)]
       #dfm=dfm[(dfm['count_x'] > self.p['autofocuscount']) | (dfm['count_y'] > self.p['autofocuscount']) ]
       #dfm=dfm[(dfm['mean_x'] > self.p['autofocusmean']) | (dfm['mean_y'] > self.p['autofocusmean']) ]
-      #dfm=dfm[(abs(dfm['DeltaCountPe']) > 10)]
+      #dfm=dfm[(abs(dfm['DMeanPe']) > 10)]
       pass
     logging.warning(dfm)
     if dfm.size == 0 :
       return
     with pd.option_context('display.max_rows', None) :
       self.p['out'].h2("Comparison of requests : x=" + self.f1.getFile() + " y=" + self.f2.getFile())
-      self.p['out'].out("Compare",dfm[['PurePath','count_x','count_y','DeltaCount','DeltaCountPe',
-          'mean_x','mean_y','DeltaMean','DeltaMeanPe',
-          'std_x','std_y','DeltaStd','DeltaStdPe',
-          '50%_x','50%_y','DeltaP50','DeltaP50Pe',
-          '95%_x','95%_y','DeltaP95','DeltaP95Pe']],
+      self.p['out'].out("Compare",dfm[['PurePath','count_x','count_y','DCount','DCountPe',
+          'mean_x','mean_y','DMean','DMeanPe',
+          'std_x','std_y','DStd','DStdPe',
+          '50%_x','50%_y','DP50','DP50Pe',
+          '95%_x','95%_y','DP95','DP95Pe']],
           False)
 
 #--------------------------------------------------------------------------------------
@@ -192,6 +192,7 @@ class PPCompareProcessor() :
   def __init__(self,param) :
     self.param=param
     self.p=self.param.getAll()
+    self.p['out'].setPPdiv("PPCompareProcessor")
     self.dfs=[]
     logging.warning(self.p)
     if ('file2' in self.p) & (self.p['file2'] is not None) :
