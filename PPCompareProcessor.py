@@ -79,11 +79,37 @@ class PPComparator() :
   def __init__(self,param,f1,f2) :
     self.param=param
     self.p=self.param.getAll()
+    self.ppregex=self.p['ppregex']
+    self.ppregexclude=self.p['ppregexclude']
     self.f1=f1
     self.f2=f2
     self.df1=f1.getRawdatas()
     self.df2=f2.getRawdatas()
     self.go()
+
+
+  #--------------------------------------------------------------------------------------
+  def regexFilter(self,val):
+    if val:
+        mo = re.search(self.ppregex,val)
+        if mo:
+            return True
+        else:
+            return False
+    else:
+        return False
+
+  #--------------------------------------------------------------------------------------
+  def regexcludeFilter(self,val):
+    if val:
+        mo = re.search(self.ppregexclude,val)
+        if mo:
+            return False
+        else:
+            return True
+    else:
+        return False
+
 
   @staticmethod
   #--------------------------------------------------------------------------------------
@@ -125,6 +151,7 @@ class PPComparator() :
     #print(self.df1)
     #print(self.df2)
     dfm=pd.merge(self.df1,self.df2,on='PurePath',how='outer')
+    dfm.reset_index(inplace=True)
     dfm['DeltaStd']=dfm.apply(lambda x: x['std_y'] - x['std_x'],axis=1 ) 
     dfm['DeltaCount']=dfm.apply(lambda x: x['count_y'] - x['count_x'],axis=1 ) 
     dfm['DeltaMean']=dfm.apply(lambda x: x['mean_y'] - x['mean_x'],axis=1 ) 
@@ -135,17 +162,23 @@ class PPComparator() :
     dfm['DeltaMeanPe']=dfm.apply(PPComparator.deltaMeanPe,axis=1 ) 
     dfm['DeltaP50Pe']=dfm.apply(PPComparator.deltaP50Pe,axis=1 ) 
     dfm['DeltaP95Pe']=dfm.apply(PPComparator.deltaP95Pe,axis=1 ) 
-    filter=False
+    dfm.fillna(value=0,inplace=True)
+    filter=True
     if filter :
-      dfm=dfm[(dfm['count_x'] > self.p['autofocuscount']) & (dfm['count_y'] > self.p['autofocuscount']) ]
-      dfm=dfm[(dfm['mean_x'] > self.p['autofocusmean']) & (dfm['mean_y'] > self.p['autofocusmean']) ]
-      dfm=dfm[(abs(dfm['DeltaCountPe']) > 10)]
+      if len(self.ppregex) > 0 :
+        dfm=dfm[dfm['PurePath'].apply(self.regexFilter)]
+      if len(self.ppregexclude) > 0 :
+        dfm=dfm[dfm['PurePath'].apply(self.regexcludeFilter)]
+      #dfm=dfm[(dfm['count_x'] > self.p['autofocuscount']) | (dfm['count_y'] > self.p['autofocuscount']) ]
+      #dfm=dfm[(dfm['mean_x'] > self.p['autofocusmean']) | (dfm['mean_y'] > self.p['autofocusmean']) ]
+      #dfm=dfm[(abs(dfm['DeltaCountPe']) > 10)]
+      pass
     logging.warning(dfm)
     if dfm.size == 0 :
       return
     with pd.option_context('display.max_rows', None) :
       self.p['out'].h2("Comparison of requests : x=" + self.f1.getFile() + " y=" + self.f2.getFile())
-      self.p['out'].out("Compare",dfm[['count_x','count_y','DeltaCount','DeltaCountPe',
+      self.p['out'].out("Compare",dfm[['PurePath','count_x','count_y','DeltaCount','DeltaCountPe',
           'mean_x','mean_y','DeltaMean','DeltaMeanPe',
           'std_x','std_y','DeltaStd','DeltaStdPe',
           '50%_x','50%_y','DeltaP50','DeltaP50Pe',
