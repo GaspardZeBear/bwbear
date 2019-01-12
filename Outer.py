@@ -125,6 +125,7 @@ class OutputHtml(Out) :
   integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
   crossorigin="anonymous"></script>
 <script src="https://mottie.github.io/tablesorter/dist/js/jquery.tablesorter.min.js"></script>
+
   <script>
 
 $(document).ready((function() {
@@ -132,28 +133,17 @@ $(document).ready((function() {
   $("#PPCompareProcessor").css('background-color', 'white');
   $("tr:even").css("background-color", "white");
   $("tr:odd").css("background-color", "lightgrey");
-  $("td:nth-child(6)").each(function() {
-    if ( $(this).html() > 30 ) {
-    $(this).addClass('greenBg');
-    } 
-  });
-  $("td:nth-child(6)").each(function() {
-    if ( $(this).html() < -3 ) {
-    $(this).addClass('redBg');
-    } 
-  });
-  $("td:nth-child(10),td:nth-child(14),td:nth-child(18),td:nth-child(22)").each(function() {
-    if ( $(this).html() > 30 ) {
-    $(this).addClass('redBg');
-    } 
-  });
-  $("td:nth-child(10),td:nth-child(14),td:nth-child(18),td:nth-child(22)").each(function() {
-    if ( $(this).html() < -29) {
-    $(this).addClass('greenBg');
-    } 
-  });
+  percentMustIncrease="td:nth-child(6)";
+  percentMustDecrease="td:nth-child(10),td:nth-child(14),td:nth-child(18),td:nth-child(22)";
+  tableClass=".tablePPcompareProcessor"
+  thresh=10
+  $(percentMustIncrease,tableClass).each( function() { $(this).addClass( ($(this).html()<-thresh)?'redBg':'' )});
+  $(percentMustIncrease,tableClass).each( function() { $(this).addClass( ($(this).html()> thresh)?'greenBg':'' )});
+  $(percentMustDecrease,tableClass).each( function() { $(this).addClass( ($(this).html()> thresh)?'redBg':'' )});
+  $(percentMustDecrease,tableClass).each( function() { $(this).addClass( ($(this).html()<-thresh)?'greenBg':'' )});
 }));
   </script>
+
 </head>
 
     <body>
