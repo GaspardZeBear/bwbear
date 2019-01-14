@@ -71,7 +71,7 @@ class PandasGrapher() :
 
 
   #--------------------------------------------------------------------------------------
-  def XmyPlotBar(self,datas,title) :
+  def myPlotBar(self,datas,title) :
     dc=datas.count()
     dm=datas.mean()
     if dc.empty :
@@ -104,7 +104,7 @@ class PandasGrapher() :
     self.p['out'].image(f,title)
 
   #--------------------------------------------------------------------------------------
-  def myPlotBar(self,datas,title) :
+  def NmyPlotBar(self,datas,title) :
     dc=datas.count()
     dm=datas.mean()
     if dc.empty :
