@@ -10,7 +10,7 @@ class Param() :
   graphStyles={
     "Mean" : { "color": "green", "linewidth" :2 , "point" : "go"},
     "Q50" : { "color": "cyan", "linewidth" :0.2 , "point" : "g-"},
-    "Q95" : { "color": "yellow", "linewidth" :0.2 , "point" : "y+"},
+    "Q95" : { "color": "orange", "linewidth" :0.2 , "point" : "y+"},
     "Max" : { "color": "red", "linewidth" :0.2 , "point" : "ro"},
     "default" : { "color": "black", "linewidth" :1 , "point" : "go"}
   }
