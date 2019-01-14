@@ -156,6 +156,7 @@ def main3():
 @click.option('--highresponsetime', default=5000)
 @click.option('--autofocusmean', default=100)
 @click.option('--autofocuscount', default=30)
+@click.option('--ymax', default=0)
 @click.option('--ppregex', default='')
 @click.option('--ppregexclude', default='')
 @click.option('--verbose', is_flag=True, default=False)
@@ -166,6 +167,7 @@ def ppcompare(
   highresponsetime,
   autofocusmean,
   autofocuscount,
+  ymax,
   ppregex,
   ppregexclude,
   verbose,
@@ -177,6 +179,7 @@ def ppcompare(
   p.set('output',output)
   p.set('highResponseTime',highresponsetime)
   p.set('ppregex',ppregex)
+  p.set('ymax',ymax)
   p.set('ppregexclude',ppregexclude)
   p.set('autofocuscount',autofocuscount)
   p.set('autofocusmean',autofocusmean)

@@ -8,6 +8,7 @@ import json
 import re
 import hashlib
 from Outer import *
+from PandasGrapher import *
  
 #--------------------------------------------------------------------------------------
 class PPFramor() :
@@ -54,6 +55,9 @@ class PPFramor() :
     return(self.rawdatas)
 
 #--------------------------------------------------------------------------------------
+  def getDatas(self) :
+    return(self.datas)
+#--------------------------------------------------------------------------------------
   def getFile(self) :
     return(self.file)
 
@@ -81,6 +85,7 @@ class PPComparator() :
   def __init__(self,param,f1,f2) :
     self.param=param
     self.p=self.param.getAll()
+    self.grapher=PandasGrapher(self.param)
     self.ppregex=self.p['ppregex']
     self.ppregexclude=self.p['ppregexclude']
     self.f1=f1
@@ -186,6 +191,26 @@ class PPComparator() :
           '50%_x','50%_y','DP50','DP50Pe',
           '95%_x','95%_y','DP95','DP95Pe']],
           escape=False,classes='tablePPcompareProcessor')
+      self.graphIt(self.f1.getFile(),self.f1.getDatas())
+      self.graphIt(self.f2.getFile(),self.f2.getDatas())
+
+  #--------------------------------------------------------------------------------------
+  def graphIt(self,title,df) :
+      logging.warning(df)
+      self.dfall=pd.DataFrame(df.groupby(self.p['timeGroupby'])['StartTime'].count().apply(lambda x: 0))
+      self.grapher.setDfall(self.dfall)
+      logging.warning(self.dfall)
+
+      dg=df.groupby(self.p['timeGroupby'])['ResponseTime']
+      self.p['out'].h3("Time view for " + title)
+      self.grapher.graphBasicsNew("Time view " + title, dg, [
+      { 'aggr' : 'Max', 'dgaggr' : dg.max(), 'color' : 'red'},
+      { 'aggr' : 'Mean', 'dgaggr' : dg.mean(), 'color' : 'green'},
+      { 'aggr' : 'Q50', 'dgaggr' : dg.quantile(0.5), 'color' : 'green'},
+      { 'aggr' : 'Q95', 'dgaggr' : dg.quantile(0.95), 'color' : 'green'},
+      ])
+
+
 
 #--------------------------------------------------------------------------------------
 class PPCompareProcessor() :
