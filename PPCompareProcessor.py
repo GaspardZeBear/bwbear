@@ -64,9 +64,11 @@ class PPFramor() :
     if self.tsm is not None:
       self.datas=self.datas[ self.datas['ts10m'] == self.tsm ]
     self.rawdatas=self.datas.groupby('PurePath')['ResponseTime'].describe(percentiles=PPFramor.percentiles)
-    #self.p['out'].h2("PP from " + self.file)
-    #with pd.option_context('display.max_rows', None, 'display.max_colwidth', 0) :
-    #  self.p['out'].out("PP",self.rawdatas,False)
+    self.p['out'].h2("PP from " + self.file)
+    with pd.option_context('display.max_rows', None, 'display.max_colwidth', 0) :
+      #self.p['out'].out("PP",self.rawdatas,False)
+      self.p['out'].out("PP",self.rawdatas,escape=False)
+      
 
 #--------------------------------------------------------------------------------------
   def getTsmlist(self,tsm) :
@@ -183,7 +185,7 @@ class PPComparator() :
           'std_x','std_y','DStd','DStdPe',
           '50%_x','50%_y','DP50','DP50Pe',
           '95%_x','95%_y','DP95','DP95Pe']],
-          False)
+          escape=False,classes='tablePPcompareProcessor')
 
 #--------------------------------------------------------------------------------------
 class PPCompareProcessor() :

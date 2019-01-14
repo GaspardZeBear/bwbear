@@ -70,7 +70,7 @@ class SQLFramor() :
     #print(self.rawdatas.head())
     self.p['out'].h2("SQL requests from " + self.file)
     with pd.option_context('display.max_rows', None, 'display.max_colwidth', 0) :
-      self.p['out'].out("SQL",self.rawdatas[['Lnk','ASql']],False)
+      self.p['out'].out("SQL",self.rawdatas[['Lnk','ASql']],escape=False)
 
 #--------------------------------------------------------------------------------------
 class SQLComparator() :
@@ -112,11 +112,11 @@ class SQLComparator() :
     dfm=dfm[dfm['Sql_x'].notnull() & dfm['Sql_y'].notnull()]
     with pd.option_context('display.max_rows', None) :
       self.p['out'].h2("Comparison of requests")
-      self.p['out'].out("Compare",dfm[['xLnk','yLnk','Sql_x','ExecCount_x','ExecCount_y','DeltaCount','DeltaCountPercent','ExecAvg_x','ExecAvg_y','ExecPerTrans_x','ExecPerTrans_y']],False)
+      self.p['out'].out("Compare",dfm[['xLnk','yLnk','Sql_x','ExecCount_x','ExecCount_y','DeltaCount','DeltaCountPercent','ExecAvg_x','ExecAvg_y','ExecPerTrans_x','ExecPerTrans_y']],escape=False)
       self.p['out'].h2("Request in file1 only")
-      self.p['out'].out("Compare",dfm1[['xLnk','Sql_x','ExecCount_x','ExecAvg_x','ExecPerTrans_x']],False)
+      self.p['out'].out("Compare",dfm1[['xLnk','Sql_x','ExecCount_x','ExecAvg_x','ExecPerTrans_x']],escape=False)
       self.p['out'].h2("Request in file2 only")
-      self.p['out'].out("Compare",dfm2[['yLnk','Sql_y','ExecCount_y','ExecAvg_y','ExecPerTrans_y']],False)
+      self.p['out'].out("Compare",dfm2[['yLnk','Sql_y','ExecCount_y','ExecAvg_y','ExecPerTrans_y']],escape=False)
 
 
 #--------------------------------------------------------------------------------------

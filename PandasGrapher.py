@@ -32,8 +32,10 @@ class PandasGrapher() :
   #--------------------------------------------------------------------------------------
   def graphBasicsNew(self,title,dgbase,dgList) :
     logging.debug("graphBasics aggr=" + title)
-    plt.figure(figsize=(16,4))
-    fig, ax=plt.subplots(figsize=(16,4))
+    #plt.figure(figsize=(16,4))
+    #fig, ax=plt.subplots(figsize=(16,4))
+    plt.figure(figsize=(8,2))
+    fig, ax=plt.subplots(figsize=(12,3))
     fig.autofmt_xdate()
     logging.debug("graphBasics setting ax")
     ax.fmt_xdata = mdates.DateFormatter('%Y-%m-%d')
@@ -69,7 +71,7 @@ class PandasGrapher() :
 
 
   #--------------------------------------------------------------------------------------
-  def myPlotBar(self,datas,title) :
+  def XmyPlotBar(self,datas,title) :
     dc=datas.count()
     dm=datas.mean()
     if dc.empty :
@@ -100,4 +102,45 @@ class PandasGrapher() :
     plt.savefig(f)
     plt.close()
     self.p['out'].image(f,title)
+
+  #--------------------------------------------------------------------------------------
+  def myPlotBar(self,datas,title) :
+    dc=datas.count()
+    dm=datas.mean()
+    if dc.empty :
+      return
+    if dc.size > 100 :
+      return
+    logging.warning(datas)
+    df=dc.to_frame()
+    logging.warning(df)
+    df.rename(columns={"ResponseTime":"Count"},inplace=True)
+    dfm=dm.to_frame()
+    logging.warning(dfm)
+    dfm.rename(columns={"ResponseTime":"Mean"},inplace=True)
+   
+    df=df.reset_index(inplace=True) 
+    dfm=dfm.reset_index(inplace=True) 
+    logging.warning(df)
+    dfmerge=pd.merge(df,dfm,on='ResponseTime')
+
+    figYSize=int(dc.size/4) + 1
+
+    fig,ax=plt.subplots(figsize=(16,figYSize))
+    #ax=fig.add_subplot(121)
+    dfmerge.plot.barh(color='lightgrey',ax=ax,grid=True)
+    ax.minorticks_on()
+    ax.xaxis.grid(True, which='minor', linestyle='-', linewidth=0.25)
+    #axm=fig.add_subplot(122)
+    #dfm.plot.barh(color='green',ax=ax,grid=True,title=title)
+    #axm.minorticks_on()
+    #axm.xaxis.grid(True, which='minor', linestyle='-', linewidth=0.25)
+    #axm.get_yaxis().set_ticks([])
+
+    f=self.getPngFileName(title)
+    plt.tight_layout()
+    plt.savefig(f)
+    plt.close()
+    self.p['out'].image(f,title)
+
 

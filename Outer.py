@@ -211,11 +211,20 @@ $(document).ready((function() {
     self.addToContent("<p>"+p+"</p>")
 
   #--------------------------------------------------------------------------------------
-  def out(self,title,o,escape=True) :
+  def Xout(self,title,o,escape=True) :
     self.addToContent("<br/><b>"+title+"</b>")
     if o.empty :
       return 
     self.addToContent(o.to_html(border=1,escape=escape,classes='table' + self.PPdiv))
+
+
+  #--------------------------------------------------------------------------------------
+  def out(self,title,o,**kws) :
+    self.addToContent("<br/><b>"+title+"</b>")
+    if o.empty :
+      return
+    #kwss=', '.join(str(x) for x in kws) 
+    self.addToContent(o.to_html(border=1,**kws))
 
   #--------------------------------------------------------------------------------------
   def tables(self,ths) :
