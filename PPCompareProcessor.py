@@ -10,6 +10,7 @@ import hashlib
 from Outer import *
 from PandasGrapher import *
 from PPDFFilterer import *
+from DFFormatter import *
  
 #--------------------------------------------------------------------------------------
 class PPFramor() :
@@ -66,8 +67,11 @@ class PPFramor() :
      
 #--------------------------------------------------------------------------------------
   def setRawdatas(self) :
-    self.datas=pd.read_csv(self.file,sep=';',decimal=self.decimal)
-    ppf=PPDFFilterer(self.datas,self.param)
+    #self.datas=pd.read_csv(self.file,sep=';',decimal=self.decimal)
+    self.p['datafile']=self.file
+    self.DFF=DFFormatter.getFromFactory(self.p['type'],self.p)
+    
+    ppf=PPDFFilterer(self.DFF.getDf(),self.param)
     self.datas=ppf.getDfOK()
     self.tsmList=self.datas['ts10m'].unique()
     if self.tsm is not None:
@@ -96,30 +100,6 @@ class PPComparator() :
     self.df1=f1.getRawdatas()
     self.df2=f2.getRawdatas()
     self.go()
-
-
-  #--------------------------------------------------------------------------------------
-  def regexFilter(self,val):
-    if val:
-        mo = re.search(self.ppregex,val)
-        if mo:
-            return True
-        else:
-            return False
-    else:
-        return False
-
-  #--------------------------------------------------------------------------------------
-  def regexcludeFilter(self,val):
-    if val:
-        mo = re.search(self.ppregexclude,val)
-        if mo:
-            return False
-        else:
-            return True
-    else:
-        return False
-
 
   @staticmethod
   #--------------------------------------------------------------------------------------

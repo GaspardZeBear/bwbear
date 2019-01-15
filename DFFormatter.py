@@ -28,7 +28,7 @@ class DFFormatter() :
     logging.warning("scriptpath : " + p['scriptpath'])
     self.p=p
     self.file=p['datafile']
-    self.fconf=p['formatfile']
+    self.fconf=''
     self.decimal=p['decimal']
     self.infos=dict()
     self.infos['Datafile']=self.file
@@ -37,6 +37,19 @@ class DFFormatter() :
     self.infos['HeadInitial']=None
     self.infos['HeadFinal']=None
     self.wrangle=False
+    self.df=None
+    pd.set_option("display.max_rows",None)
+    if self.file.endswith('.pan') :
+      self.decimal='.'
+      self.formatDf(False)
+    else :
+      self.fconf=p['formatfile']
+      self.processFormatFile()
+      self.formatDf(True)
+    logging.warning("DFFormatter ends")
+
+  #--------------------------------------------------------------------------------------
+  def processFormatFile(self) :
     with open(self.fconf, 'r') as j:
       self.json = json.load(j)
       self.infos['json']=self.json
@@ -48,15 +61,6 @@ class DFFormatter() :
       self.droprows=self.json['DROPROWS']
       #self.renamecolumns=self.json['RENAMECOLUMNS']
       logging.warning(self.json)
-
-    self.df=None
-    pd.set_option("display.max_rows",None)
-    if self.file.endswith('.pan') :
-      self.decimal='.'
-      self.formatDf(False)
-    else :
-      self.formatDf(True)
-    logging.warning("DFFormatter ends")
 
   #--------------------------------------------------------------------------------------
   def getDf(self) :
