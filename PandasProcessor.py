@@ -50,18 +50,6 @@ class PandasProcessor() :
     pd.options.display.float_format = '{:.0f}'.format
 
   #--------------------------------------------------------------------------------------
-  def timeregexFilter(self,val):
-    if val:
-        mo = re.search(self.timeregex,val)
-        if mo:
-            return True
-        else:
-            return False
-    else:
-        return False
-
-
-  #--------------------------------------------------------------------------------------
   def myBuckets(self,datas,title):
     logging.warning("buckets begin " + title)
     self.p['out'].h4("Buckets for " + title)
