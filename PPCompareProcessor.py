@@ -187,6 +187,7 @@ class PPComparator() :
     #print(self.df2)
     dfm=pd.merge(self.df1,self.df2,on='PurePath',how='outer')
     dfm.reset_index(inplace=True)
+    dfm['DMax']=dfm.apply(lambda x: x['max_y'] - x['max_x'],axis=1 ) 
     dfm['DStd']=dfm.apply(lambda x: x['std_y'] - x['std_x'],axis=1 ) 
     dfm['DCount']=dfm.apply(lambda x: x['count_y'] - x['count_x'],axis=1 ) 
     dfm['DMean']=dfm.apply(lambda x: x['mean_y'] - x['mean_x'],axis=1 ) 
@@ -217,7 +218,8 @@ class PPComparator() :
           'mean_x','mean_y','DMean','DMeanPe',
           'std_x','std_y','DStd','DStdPe',
           '50%_x','50%_y','DP50','DP50Pe',
-          '95%_x','95%_y','DP95','DP95Pe']],
+          '95%_x','95%_y','DP95','DP95Pe',
+          'max_x','max_y','DMax']],
           escape=False,classes='tablePPcompareProcessor')
       self.graphIt(self.f1.getFile(),self.f1.getDatas())
       self.graphIt(self.f2.getFile(),self.f2.getDatas())
