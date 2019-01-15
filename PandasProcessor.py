@@ -8,6 +8,7 @@ from Outer import *
 from DFFormatter import *
 from PandasGrapher import *
 from Param import *
+from PPDFFilterer import *
   
 STEPS=dict()
 #----------------------------------------------------------------
@@ -59,28 +60,6 @@ class PandasProcessor() :
     else:
         return False
 
-
-  #--------------------------------------------------------------------------------------
-  def regexFilter(self,val):
-    if val:
-        mo = re.search(self.ppregex,val)
-        if mo:
-            return True
-        else:
-            return False
-    else:
-        return False
-
-  #--------------------------------------------------------------------------------------
-  def regexcludeFilter(self,val):
-    if val:
-        mo = re.search(self.ppregexclude,val)
-        if mo:
-            return False
-        else:
-            return True
-    else:
-        return False
 
   #--------------------------------------------------------------------------------------
   def myBuckets(self,datas,title):
@@ -161,28 +140,16 @@ class PandasProcessor() :
 
   #--------------------------------------------------------------------------------------
   def buildDataframes(self) :
-    rawdatas=self.DFF.getDf()
-    rawdatas=self.filter(rawdatas)
-    self.dfOK=rawdatas[ ( rawdatas['ErrorState'] == 'OK' ) ]
-    self.dfKO=rawdatas[ ( rawdatas['ErrorState'] != 'OK') ]
-    self.dfall=pd.DataFrame(self.dfOK.groupby(self.p['timeGroupby'])['StartTime'].count().apply(lambda x: 0))
+    ppf=PPDFFilterer(self.DFF.getDf(),self.param)
+    #rawdatas=self.filter(rawdatas)
+    self.dfOK=ppf.getDfOK()
+    self.dfKO=ppf.getDfKO()
+    self.dfall=ppf.getDfall()
     self.grapher.setDfall(self.dfall)
     self.setAutofocus(self.computeAutofocus(self.dfOK))
     self.dfFocus=self.dfOK[ self.dfOK['PurePath'].isin( self.getFocusedPurepaths()) ]
     self.dfHigh=self.dfOK[ ( self.dfOK['ResponseTime'] > self.p['highResponseTime'] ) ]
-
-  #--------------------------------------------------------------------------------------
-  def filter(self,rawdatas) :
-    sizein=len(rawdatas)
-    if len(self.ppregex) > 0 :
-      rawdatas=rawdatas[rawdatas['PurePath'].apply(self.regexFilter)]
-    if len(self.ppregexclude) > 0 :
-      rawdatas=rawdatas[rawdatas['PurePath'].apply(self.regexcludeFilter)]
-    if len(self.timeregex) > 0 :
-      logging.warning("Apply timeregex filter")
-      rawdatas=rawdatas[rawdatas['StartTimeStr'].apply(self.timeregexFilter)]
-    self.filtered=sizein - len(rawdatas.index)
-    return(rawdatas)
+    self.filtered=ppf.getFiltered()
 
   #--------------------------------------------------------------------------------------
   def printTitle(self) :

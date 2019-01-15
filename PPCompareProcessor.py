@@ -9,6 +9,7 @@ import re
 import hashlib
 from Outer import *
 from PandasGrapher import *
+from PPDFFilterer import *
  
 #--------------------------------------------------------------------------------------
 class PPFramor() :
@@ -62,36 +63,12 @@ class PPFramor() :
 #--------------------------------------------------------------------------------------
   def getFile(self) :
     return(self.file)
-#--------------------------------------------------------------------------------------
-  def regexFilter(self,val):
-    if val:
-        mo = re.search(self.ppregex,val)
-        if mo:
-            return True
-        else:
-            return False
-    else:
-        return False
-
-#--------------------------------------------------------------------------------------
-  def regexcludeFilter(self,val):
-    if val:
-        mo = re.search(self.ppregexclude,val)
-        if mo:
-            return False
-        else:
-            return True
-    else:
-        return False
-
-
+     
 #--------------------------------------------------------------------------------------
   def setRawdatas(self) :
     self.datas=pd.read_csv(self.file,sep=';',decimal=self.decimal)
-    if len(self.ppregex) > 0 :
-      self.datas=self.datas[self.datas['PurePath'].apply(self.regexFilter)]
-    if len(self.ppregexclude) > 0 :
-      self.datas=self.datas[self.datas['PurePath'].apply(self.regexcludeFilter)]
+    ppf=PPDFFilterer(self.datas,self.param)
+    self.datas=ppf.getDfOK()
     self.tsmList=self.datas['ts10m'].unique()
     if self.tsm is not None:
       self.datas=self.datas[ self.datas['ts10m'] == self.tsm ]
@@ -100,7 +77,7 @@ class PPFramor() :
     with pd.option_context('display.max_rows', None, 'display.max_colwidth', 0) :
       #self.p['out'].out("PP",self.rawdatas,False)
       self.p['out'].out("PP",self.rawdatas,escape=False)
-      
+ 
 
 #--------------------------------------------------------------------------------------
   def getTsmlist(self,tsm) :
@@ -114,8 +91,6 @@ class PPComparator() :
     self.param=param
     self.p=self.param.getAll()
     self.grapher=PandasGrapher(self.param)
-    #self.ppregex=self.p['ppregex']
-    #self.ppregexclude=self.p['ppregexclude']
     self.f1=f1
     self.f2=f2
     self.df1=f1.getRawdatas()
@@ -201,10 +176,6 @@ class PPComparator() :
     dfm.fillna(value=0,inplace=True)
     filter=True
     if filter :
-      #if len(self.ppregex) > 0 :
-      #  dfm=dfm[dfm['PurePath'].apply(self.regexFilter)]
-      #if len(self.ppregexclude) > 0 :
-      #  dfm=dfm[dfm['PurePath'].apply(self.regexcludeFilter)]
       #dfm=dfm[(dfm['count_x'] > self.p['autofocuscount']) | (dfm['count_y'] > self.p['autofocuscount']) ]
       #dfm=dfm[(dfm['mean_x'] > self.p['autofocusmean']) | (dfm['mean_y'] > self.p['autofocusmean']) ]
       #dfm=dfm[(abs(dfm['DMeanPe']) > 10)]
