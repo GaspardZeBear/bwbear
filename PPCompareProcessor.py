@@ -36,6 +36,8 @@ class PPFramor() :
     PPFramor.databaseNum  = 0 
     PPFramor.sqlNum  = 0 
     self.setRawdatas()
+    self.setThrudatas()
+    self.report()
     logging.warning("PPFramor ends")
 
   @staticmethod
@@ -64,6 +66,18 @@ class PPFramor() :
 #--------------------------------------------------------------------------------------
   def getFile(self) :
     return(self.file)
+
+#--------------------------------------------------------------------------------------
+  def setThrudatas(self) :
+    self.thrudatas=self.datas.groupby('PurePath')['StartTime'].agg(['min','max','count']).reset_index()
+    #self.thrudatas['thru']=self.thrudatas.apply(lambda x: (x['max']-x['min'])/x['count'],axis=1)
+    self.thrudatas['duration']=self.thrudatas['max']-self.thrudatas['min']
+    self.thrudatas['durationSec']=self.thrudatas['duration']/np.timedelta64(1,'s')
+    self.thrudatas['durationMin']=self.thrudatas['duration']/np.timedelta64(1,'m')
+    #self.thrudatas['thruSec']=self.thrudatas.apply(lambda x: x['count']/x['durationSec'],axis=1)
+    self.thrudatas['thruSec']=self.thrudatas.apply(lambda x:  x['count']/x['durationSec'] if x['durationSec'] else 0,axis=1)
+    self.thrudatas['thruMin']=self.thrudatas.apply(lambda x:  x['count']/x['durationMin'] if x['durationMin'] else 0,axis=1)
+    logging.warning(self.thrudatas)
      
 #--------------------------------------------------------------------------------------
   def setRawdatas(self) :
@@ -77,10 +91,22 @@ class PPFramor() :
     if self.tsm is not None:
       self.datas=self.datas[ self.datas['ts10m'] == self.tsm ]
     self.rawdatas=self.datas.groupby('PurePath')['ResponseTime'].describe(percentiles=PPFramor.percentiles)
+     
+#--------------------------------------------------------------------------------------
+  def report(self) :
     self.p['out'].h2("PP from " + self.file)
-    with pd.option_context('display.max_rows', None, 'display.max_colwidth', 0) :
-      #self.p['out'].out("PP",self.rawdatas,False)
-      self.p['out'].out("PP",self.rawdatas,escape=False)
+    #with pd.option_context('display.max_rows', None, 'display.max_colwidth', 0) :
+    #  self.p['out'].out("PP",self.rawdatas,escape=False)
+    #with pd.option_context('display.max_rows', None, 'display.max_colwidth', 0, 'display.float_format','{:.2f}'.format) :
+    #  self.p['out'].out("Summary stats",self.thrudatas,escape=False)
+    dfm=pd.merge(self.rawdatas,self.thrudatas,on='PurePath')
+    dfm.drop (
+        ['count_x','durationMin'],
+        inplace=True,axis=1
+      )
+
+    with pd.option_context('display.max_rows', None, 'display.max_colwidth', 0, 'display.float_format','{:.2f}'.format) :
+      self.p['out'].out("Summary stats",dfm,escape=False)
  
 
 #--------------------------------------------------------------------------------------
@@ -160,7 +186,7 @@ class PPComparator() :
       #dfm=dfm[(dfm['mean_x'] > self.p['autofocusmean']) | (dfm['mean_y'] > self.p['autofocusmean']) ]
       #dfm=dfm[(abs(dfm['DMeanPe']) > 10)]
       pass
-    logging.warning(dfm)
+    #logging.warning(dfm)
     if dfm.size == 0 :
       return
     with pd.option_context('display.max_rows', None) :
@@ -177,10 +203,10 @@ class PPComparator() :
 
   #--------------------------------------------------------------------------------------
   def graphIt(self,title,df) :
-      logging.warning(df)
+      #logging.warning(df)
       self.dfall=pd.DataFrame(df.groupby(self.p['timeGroupby'])['StartTime'].count().apply(lambda x: 0))
       self.grapher.setDfall(self.dfall)
-      logging.warning(self.dfall)
+      #logging.warning(self.dfall)
 
       dg=df.groupby(self.p['timeGroupby'])['ResponseTime']
       self.p['out'].h3("Time view for " + title)
