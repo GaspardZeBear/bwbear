@@ -120,5 +120,7 @@ class Param() :
       self.p['timeregex']=''
     if 'ppregexclude' not in self.p :
       self.p['ppregexclude']=''
+    if 'percentiles' not in self.p :
+      self.p['percentiles']=[.50,.95,.99]
 
 

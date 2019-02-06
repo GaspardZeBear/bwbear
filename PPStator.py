@@ -17,35 +17,46 @@ class PPStator() :
     self.param=param
     self.p=self.param.getAll()
     self.ppDg=self.df.groupby('PurePath')['ResponseTime'].describe(percentiles=self.p['percentiles'])
-    logging.warning(self.ppDg)
+
+    # Build a global entry for describe and concat it for 
+    self.described=pd.concat([self.ppDg,self.df.describe(percentiles=self.p['percentiles']).T],axis=0)
+    self.described=self.described.reset_index()
+    self.described.replace('ResponseTime','*',inplace=True)
+    self.described=self.described[ self.described['index'] != 'Error']
+    self.described.rename(columns={'index':'PurePath'},inplace=True)
+    logging.warning(self.described)
+
+    # Build a global entry for throughput
+    d= { 'PurePath' : ['*'],
+         'min' : [self.df['StartTime'].min()],
+         'max' : [self.df['StartTime'].max()],
+         'count' : [self.df['StartTime'].count()]
+    }
+    self.globalThru=pd.DataFrame.from_dict(d).reset_index()
+    logging.warning(self.globalThru)
     self.setThrudf()
 
-#--------------------------------------------------------------------------------------
+  #--------------------------------------------------------------------------------------
   def setThrudf(self) :
-    self.thrudf=self.df.groupby('PurePath')['StartTime'].agg(['min','max','count']).reset_index()
-    #self.thrudf['thru']=self.thrudf.apply(lambda x: (x['max']-x['min'])/x['count'],axis=1)
+    self.thrudf0=self.df.groupby('PurePath')['StartTime'].agg(['min','max','count']).reset_index()
+    self.thrudf=pd.concat([self.thrudf0,self.globalThru],axis=0)
+    logging.warning(self.thrudf)
+
+    # Compute throughput infos
     self.thrudf['duration']=self.thrudf['max']-self.thrudf['min']
     self.thrudf['durationSec']=self.thrudf['duration']/np.timedelta64(1,'s')
     self.thrudf['durationMin']=self.thrudf['duration']/np.timedelta64(1,'m')
-    #self.thrudf['thruSec']=self.thrudf.apply(lambda x: x['count']/x['durationSec'],axis=1)
     self.thrudf['thruSec']=self.thrudf.apply(lambda x:  x['count']/x['durationSec'] if x['durationSec'] else 0,axis=1)
-    #self.thrudf['thruMin']=self.thrudf.apply(lambda x:  x['count']/x['durationMin'] if x['durationMin'] else 0,axis=1)
     self.thrudf['thruMin']=self.thrudf['thruSec']*60
 
-    self.thruDuration=self.df['StartTime'].max() - self.df['StartTime'].min()
-    self.thruDurationSec=self.thruDuration/np.timedelta64(1,'s')
-    self.thruDurationMin=self.thruDuration/np.timedelta64(1,'m')
-    #self.thruSec=( (self.df['StartTime'].max() - self.df['StartTime'].min())/np.timedelta64(1,'s') / self.df['StartTime'].count() )
-    self.thruSec= self.df['StartTime'].count()/self.thruDurationSec if self.thruDurationSec else 0
-    self.thruMin=self.thruSec*60
-    logging.warning(self.thrudf)
-    logging.warning(self.thruSec)
-
-    self.xstats=pd.merge(self.ppDg,self.thrudf,on='PurePath')
+    # Merge by pure (+ global entry)
+    self.xstats=pd.merge(self.described,self.thrudf,on='PurePath')
     self.xstats.drop (
-        ['count_x','durationMin'],
+        ['index','count_x','durationMin'],
         inplace=True,axis=1
       )
+    self.xstats.rename(columns={'min_x':'min','max_x':'max', 'count_y':'count', 'min_y':'begin','max_y':'end'},inplace=True)
+    logging.warning(self.xstats)
 
 #--------------------------------------------------------------------------------------
   def getXstats(self) :
