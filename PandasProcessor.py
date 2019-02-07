@@ -83,6 +83,10 @@ class PandasProcessor() :
       return
     self.p['out'].h3("Statistics and graph : " + title)
 
+    self.p['out'].h4("Extended stats for " + title)
+    ppStator=PPStator(self.param,datas)
+    self.p['out'].out("Extended stats for " + title,ppStator.getXstats(),escape=False)
+
     self.myBuckets(datas,title) 
     self.describe(datas,title,describe)
 
@@ -108,9 +112,15 @@ class PandasProcessor() :
     dg=datas.groupby(grps)['ResponseTime']
     self.p['out'].out("GroupBy "  +  str(grps) + " " + title + " statistics" ,dg.describe(percentiles=self.percentiles))
 
-    #ppStator=PPStator(self.param,datas)
-    #with pd.option_context('display.max_rows', None, 'display.max_colwidth', 0, 'display.float_format','{:.2f}'.format) :
-    #  self.p['out'].out("Extended stats",ppStator.getXstats(),escape=False)
+    logging.warning(dg.groups.keys())
+    if grps[0] != 'PurePath' : 
+      with pd.option_context('display.max_rows', None, 'display.max_colwidth', 0, 'display.float_format','{:.2f}'.format) :
+        for k in dg.groups.keys() : 
+          logging.warning("****************************** grps[0]=" + grps[0] + " group=" + k)
+          df=datas[ datas[grps[0]] == k ]
+          logging.warning(df)
+          ppStator=PPStator(self.param,df)
+          self.p['out'].out("Extended stats for " + grps[0] + " group " + k,ppStator.getXstats(),escape=False)
 
     if not self.nographs :
       self.grapher.myPlotBar(datas.groupby(grps)['ResponseTime'],str(grps) + " " + title)
@@ -233,8 +243,6 @@ class PandasProcessor() :
   @Step('HighResponseTime')
   def printHighResponseTime(self) :
     self.p['out'].h2("Analyzing transactions with response time > " + str(self.p['highResponseTime']) )
-    #self.p['out'].h3("Statistics")
-    #self.groupByDescribe(self.dfOK[ ( self.dfOK['ResponseTime'] > self.p['highResponseTime'] ) ],["PurePath"],'HighResponseTime')
     self.myGraphs(self.dfHigh,'HighResponseTime')
     if not self.quick :
       for pp in self.dfHigh['PurePath'].unique() :

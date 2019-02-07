@@ -103,7 +103,9 @@ class Param() :
     if 'decimal' not in self.p :
       self.p['decimal']=','
     if 'ymax' not in self.p :
-      self.p['ymax']='0'
+      self.p['ymax']=0
+    if 'xstats' not in self.p :
+      self.p['xstats']=1
     if 'timeGroupby' not in self.p :
       self.p['timeGroupby']='ts1m'
     if 'timeFormat' not in self.p :

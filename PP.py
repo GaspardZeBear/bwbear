@@ -24,6 +24,7 @@ def main1():
 @click.option('--autofocusmean', default=100)
 @click.option('--autofocuscount', default=30)
 @click.option('--ymax', default=0)
+@click.option('--xstats', default=1)
 @click.option('--ppregex', default='')
 @click.option('--timeregex', default='')
 @click.option('--steps', default='')
@@ -47,6 +48,7 @@ def ppanalyze(
   autofocusmean,
   autofocuscount,
   ymax,
+  xstats,
   ppregex,
   timeregex,
   steps,
@@ -74,6 +76,7 @@ def ppanalyze(
   p.set('timeFormat',timeformat)
   p.set('decimal',decimal)
   p.set('ymax',ymax)
+  p.set('xstats',xstats)
   p.set('ppregex',ppregex)
   p.set('timeregex',timeregex)
   p.set('ppregexclude',ppregexclude)
@@ -157,6 +160,7 @@ def main3():
 @click.option('--autofocusmean', default=100)
 @click.option('--autofocuscount', default=30)
 @click.option('--ymax', default=0)
+@click.option('--xstats', default=1)
 @click.option('--ppregex', default='')
 @click.option('--ppregexclude', default='')
 @click.option('--verbose', is_flag=True, default=False)
@@ -168,6 +172,7 @@ def ppcompare(
   autofocusmean,
   autofocuscount,
   ymax,
+  xstats,
   ppregex,
   ppregexclude,
   verbose,
@@ -180,6 +185,7 @@ def ppcompare(
   p.set('highResponseTime',highresponsetime)
   p.set('ppregex',ppregex)
   p.set('ymax',ymax)
+  p.set('xstats',xstats)
   p.set('ppregexclude',ppregexclude)
   p.set('autofocuscount',autofocuscount)
   p.set('autofocusmean',autofocusmean)

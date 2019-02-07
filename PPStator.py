@@ -14,17 +14,20 @@ class PPStator() :
   #--------------------------------------------------------------------------------------
   def __init__(self,param,df) :
     self.df=df
-    #skew =  self.df['ResponseTime'].skew()
     self.param=param
     self.p=self.param.getAll()
-    self.ppDg=self.df.groupby('PurePath')['ResponseTime'].describe(percentiles=self.p['percentiles'])
-
-    # Build a global entry for describe and concat it for 
-    self.described=pd.concat([self.ppDg,self.df.describe(percentiles=self.p['percentiles']).T],axis=0)
+    if self.p['xstats'] > 1 :
+      self.ppDg=self.df.groupby('PurePath')['ResponseTime'].describe(percentiles=self.p['percentiles'])
+      # Build a global entry for describe and concat it for 
+      self.described=pd.concat([self.ppDg,self.df.describe(percentiles=self.p['percentiles']).T],axis=0)
+    else :
+      self.described=self.df.describe(percentiles=self.p['percentiles']).T
+    
     self.described=self.described.reset_index()
     self.described.replace('ResponseTime','*',inplace=True)
     self.described=self.described[ self.described['index'] != 'Error']
     self.described.rename(columns={'index':'PurePath'},inplace=True)
+
     logging.warning(self.described)
 
     # Build a global entry for throughput
@@ -40,10 +43,11 @@ class PPStator() :
 
   #--------------------------------------------------------------------------------------
   def setThrudf(self) :
-    self.thrudf0=self.df.groupby('PurePath')['StartTime'].agg(['min','max','count']).reset_index()
-    #self.thrudf1=self.df.groupby('PurePath')['ResponseTime'].skew().reset_index()
-    #logging.warning(self.thrudf1)
-    self.thrudf=pd.concat([self.thrudf0,self.globalThru],axis=0)
+    if self.p['xstats'] > 1 :
+      self.thrudf0=self.df.groupby('PurePath')['StartTime'].agg(['min','max','count']).reset_index()
+      self.thrudf=pd.concat([self.thrudf0,self.globalThru],axis=0)
+    else :
+      self.thrudf=self.globalThru
     logging.warning(self.thrudf)
 
     # Compute throughput infos
