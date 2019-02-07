@@ -155,11 +155,11 @@ class PPComparator() :
     dfm['DMean']=dfm.apply(lambda x: x['mean_y'] - x['mean_x'],axis=1 ) 
     dfm['DP50']=dfm.apply(lambda x: x['50%_y'] - x['50%_x'],axis=1 ) 
     dfm['DP95']=dfm.apply(lambda x: x['95%_y'] - x['95%_x'],axis=1 ) 
-    dfm['DStdPe']=dfm.apply(PPComparator.deltaStdPe,axis=1 ) 
-    dfm['DCountPe']=dfm.apply(PPComparator.deltaCountPe,axis=1 ) 
-    dfm['DMeanPe']=dfm.apply(PPComparator.deltaMeanPe,axis=1 ) 
-    dfm['DP50Pe']=dfm.apply(PPComparator.deltaP50Pe,axis=1 ) 
-    dfm['DP95Pe']=dfm.apply(PPComparator.deltaP95Pe,axis=1 ) 
+    dfm['DStd%']=dfm.apply(PPComparator.deltaStdPe,axis=1 ) 
+    dfm['DCount%']=dfm.apply(PPComparator.deltaCountPe,axis=1 ) 
+    dfm['DMean%']=dfm.apply(PPComparator.deltaMeanPe,axis=1 ) 
+    dfm['DP50%']=dfm.apply(PPComparator.deltaP50Pe,axis=1 ) 
+    dfm['DP95%']=dfm.apply(PPComparator.deltaP95Pe,axis=1 ) 
     dfm.fillna(value=0,inplace=True)
     filter=True
     if filter :
@@ -172,11 +172,11 @@ class PPComparator() :
       return
     with pd.option_context('display.max_rows', None) :
       self.p['out'].h2("Comparison of requests : x=" + self.f1.getFile() + " y=" + self.f2.getFile())
-      self.p['out'].out("Compare",dfm[['PurePath','count_x','count_y','DCount','DCountPe',
-          'mean_x','mean_y','DMean','DMeanPe',
-          'std_x','std_y','DStd','DStdPe',
-          '50%_x','50%_y','DP50','DP50Pe',
-          '95%_x','95%_y','DP95','DP95Pe',
+      self.p['out'].out("Compare",dfm[['PurePath','count_x','count_y','DCount','DCount%',
+          'mean_x','mean_y','DMean','DMean%',
+          'std_x','std_y','DStd','DStd%',
+          '50%_x','50%_y','DP50','DP50%',
+          '95%_x','95%_y','DP95','DP95%',
           'max_x','max_y','DMax']],
           escape=False,classes='tablePPcompareProcessor')
       self.graphIt(self.f1.getFile(),self.f1.getDatas())

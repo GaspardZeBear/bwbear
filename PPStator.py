@@ -14,6 +14,7 @@ class PPStator() :
   #--------------------------------------------------------------------------------------
   def __init__(self,param,df) :
     self.df=df
+    #skew =  self.df['ResponseTime'].skew()
     self.param=param
     self.p=self.param.getAll()
     self.ppDg=self.df.groupby('PurePath')['ResponseTime'].describe(percentiles=self.p['percentiles'])
@@ -30,7 +31,8 @@ class PPStator() :
     d= { 'PurePath' : ['*'],
          'min' : [self.df['StartTime'].min()],
          'max' : [self.df['StartTime'].max()],
-         'count' : [self.df['StartTime'].count()]
+         'count' : [self.df['StartTime'].count()],
+    #     'skew' : skew,
     }
     self.globalThru=pd.DataFrame.from_dict(d).reset_index()
     logging.warning(self.globalThru)
@@ -39,6 +41,8 @@ class PPStator() :
   #--------------------------------------------------------------------------------------
   def setThrudf(self) :
     self.thrudf0=self.df.groupby('PurePath')['StartTime'].agg(['min','max','count']).reset_index()
+    #self.thrudf1=self.df.groupby('PurePath')['ResponseTime'].skew().reset_index()
+    #logging.warning(self.thrudf1)
     self.thrudf=pd.concat([self.thrudf0,self.globalThru],axis=0)
     logging.warning(self.thrudf)
 

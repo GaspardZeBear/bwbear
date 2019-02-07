@@ -9,6 +9,7 @@ from DFFormatter import *
 from PandasGrapher import *
 from Param import *
 from PPDFFilterer import *
+from PPStator import *
   
 STEPS=dict()
 #----------------------------------------------------------------
@@ -106,6 +107,11 @@ class PandasProcessor() :
       return
     dg=datas.groupby(grps)['ResponseTime']
     self.p['out'].out("GroupBy "  +  str(grps) + " " + title + " statistics" ,dg.describe(percentiles=self.percentiles))
+
+    #ppStator=PPStator(self.param,datas)
+    #with pd.option_context('display.max_rows', None, 'display.max_colwidth', 0, 'display.float_format','{:.2f}'.format) :
+    #  self.p['out'].out("Extended stats",ppStator.getXstats(),escape=False)
+
     if not self.nographs :
       self.grapher.myPlotBar(datas.groupby(grps)['ResponseTime'],str(grps) + " " + title)
 
@@ -167,6 +173,19 @@ class PandasProcessor() :
        "5.HighRespTime" : self.dfHigh['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame()
     }
     self.p['out'].tables(ths)
+    with pd.option_context('display.max_rows', None, 'display.max_colwidth', 0, 'display.float_format','{:.2f}'.format) :
+      self.p['out'].h3("Extended stats Init")
+      self.p['out'].out("Extended stats Init",PPStator(self.param,self.DFF.getDf()).getXstats(),escape=False)
+      self.p['out'].h3("Extended stats OK")
+      self.p['out'].out("Extended stats OK",PPStator(self.param,self.dfOK).getXstats(),escape=False)
+      self.p['out'].h3("Extended stats KO")
+      self.p['out'].out("Extended stats KO",PPStator(self.param,self.dfKO).getXstats(),escape=False)
+      self.p['out'].h3("Extended stats Focus")
+      self.p['out'].out("Extended stats Focus",PPStator(self.param,self.dfFocus).getXstats(),escape=False)
+      self.p['out'].h3("Extended stats HighRespTime")
+      self.p['out'].out("Extended stats HighRespTime",PPStator(self.param,self.dfHigh).getXstats(),escape=False)
+
+
     if self.quick :
       return
 
