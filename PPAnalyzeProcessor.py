@@ -23,7 +23,7 @@ def Step(name) :
   return(Stepped)
 
 #----------------------------------------------------------------
-class PandasProcessor() :
+class PPAnalyzeProcessor() :
 
   #--------------------------------------------------------------------------------------
   def __init__(self,param) :

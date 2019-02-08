@@ -1,6 +1,6 @@
 import sys
 import logging
-from PandasProcessor import *
+from PPAnalyzeProcessor import *
 from SQLProcessor import *
 from PPCompareProcessor import *
 from Param import *
@@ -86,7 +86,7 @@ def ppanalyze(
   p.set('autofocuscount',autofocuscount)
   p.processParam()
   l=p.getAll()
-  pp=PandasProcessor(p)
+  pp=PPAnalyzeProcessor(p)
   pp.setBehavior()
   pp.go()
   l=p.getAll()
