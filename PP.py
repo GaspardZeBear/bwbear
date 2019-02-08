@@ -1,7 +1,7 @@
 import sys
 import logging
 from PPAnalyzeProcessor import *
-from SQLProcessor import *
+from SQLCompareProcessor import *
 from PPCompareProcessor import *
 from Param import *
 import click
@@ -140,7 +140,7 @@ def sqlcompare(
   p.set('autofocusmean',autofocusmean)
   p.processParam()
   l=p.getAll()
-  pp=SQLProcessor(p)
+  pp=SQLCompareProcessor(p)
   pp.setBehavior()
   pp.go()
   l=p.getAll()

@@ -118,13 +118,13 @@ class SQLComparator() :
 
 
 #--------------------------------------------------------------------------------------
-class SQLProcessor() :
+class SQLCompareProcessor() :
 
   #--------------------------------------------------------------------------------------
   def __init__(self,param) :
     self.param=param
     self.p=self.param.getAll()
-    self.p['out'].h1('SQLProcessor compare ' + self.p['file1'] + ' and ' + self.p['file2'])
+    self.p['out'].h1('SQLCompareProcessor compare ' + self.p['file1'] + ' and ' + self.p['file2'])
     self.df1=SQLFramor(self.param,self.p['file1']).getRawdatas()
     self.df2=SQLFramor(self.param,self.p['file2']).getRawdatas()
 
