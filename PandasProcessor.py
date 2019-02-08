@@ -44,6 +44,7 @@ class PandasProcessor() :
     self.timeregex=self.p['timeregex']
     self.percentiles=[.50,.95,.99]
     self.buckets=self.p['buckets']
+    self.xstats=self.p['xstats']
     self.autofocus=[]
     self.fileCounter=0
     self.steps=self.p['steps']
@@ -113,7 +114,7 @@ class PandasProcessor() :
     self.p['out'].out("GroupBy "  +  str(grps) + " " + title + " statistics" ,dg.describe(percentiles=self.percentiles))
 
     logging.warning(dg.groups.keys())
-    if grps[0] != 'PurePath' : 
+    if (self.xstats > 2) and (grps[0] != 'PurePath') : 
       with pd.option_context('display.max_rows', None, 'display.max_colwidth', 0, 'display.float_format','{:.2f}'.format) :
         for k in dg.groups.keys() : 
           logging.warning("****************************** grps[0]=" + grps[0] + " group=" + k)
