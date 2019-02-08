@@ -16,7 +16,6 @@ from DFFormatter import *
 #--------------------------------------------------------------------------------------
 class PPFramor() :
 
-  percentiles=[.50,.95,.99]
   pd.options.display.float_format = '{:.0f}'.format
   database=''
   fileNum=0
@@ -33,29 +32,11 @@ class PPFramor() :
     self.decimal='.'
     self.ppregex=self.p['ppregex']
     self.ppregexclude=self.p['ppregexclude']
+    self.percentiles=self.p['percentiles']
     PPFramor.fileNum += 1
-    PPFramor.databaseNum  = 0 
-    PPFramor.sqlNum  = 0 
     self.setRawdatas()
-    #self.setThrudatas()
     self.report()
     logging.warning("PPFramor ends")
-
-  @staticmethod
-  def setPPId(row) :
-    if row['Level'] == 1 :
-      PPFramor.databaseNum += 1
-      PPFramor.sqlNum = 1
-    else :
-      PPFramor.sqlNum += 1
-    return(str(PPFramor.fileNum) + "." + str(PPFramor.databaseNum) + "." + str(PPFramor.sqlNum) ) 
-
-  @staticmethod
-  def setDatabase(row) :
-    if row['Level'] == 1 :
-      PPFramor.database = row['Sql']
-    return(PPFramor.database)
-
 
 #--------------------------------------------------------------------------------------
   def getRawdatas(self) :
@@ -68,10 +49,8 @@ class PPFramor() :
   def getFile(self) :
     return(self.file)
 
-     
 #--------------------------------------------------------------------------------------
   def setRawdatas(self) :
-    #self.datas=pd.read_csv(self.file,sep=';',decimal=self.decimal)
     self.p['datafile']=self.file
     self.DFF=DFFormatter.getFromFactory(self.p['type'],self.p)
     
@@ -80,8 +59,7 @@ class PPFramor() :
     self.tsmList=self.datas['ts10m'].unique()
     if self.tsm is not None:
       self.datas=self.datas[ self.datas['ts10m'] == self.tsm ]
-    self.rawdatas=self.datas.groupby('PurePath')['ResponseTime'].describe(percentiles=PPFramor.percentiles)
-     
+    self.rawdatas=self.datas.groupby('PurePath')['ResponseTime'].describe(percentiles=self.percentiles)
 
 #--------------------------------------------------------------------------------------
   def report(self) :
@@ -117,7 +95,6 @@ class PPComparator() :
   #--------------------------------------------------------------------------------------
   def deltaStdPe(x) :
     return(PPComparator.deltaPe('std',x))
-
 
   @staticmethod
   #--------------------------------------------------------------------------------------
@@ -184,11 +161,8 @@ class PPComparator() :
 
   #--------------------------------------------------------------------------------------
   def graphIt(self,title,df) :
-      #logging.warning(df)
       self.dfall=pd.DataFrame(df.groupby(self.p['timeGroupby'])['StartTime'].count().apply(lambda x: 0))
       self.grapher.setDfall(self.dfall)
-      #logging.warning(self.dfall)
-
       dg=df.groupby(self.p['timeGroupby'])['ResponseTime']
       self.p['out'].h3("Time view for " + title)
       self.grapher.graphBasicsNew("Time view " + title, dg, [
@@ -225,7 +199,6 @@ class PPCompareProcessor() :
   def setBehavior(self) :
     self.ppregex=self.p['ppregex']
     self.ppregexclude=self.p['ppregexclude']
-    self.percentiles=[.50,.95,.99]
     pd.options.display.float_format = '{:.0f}'.format
 
   #--------------------------------------------------------------------------------------

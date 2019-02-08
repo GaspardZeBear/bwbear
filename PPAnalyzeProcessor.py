@@ -42,7 +42,7 @@ class PPAnalyzeProcessor() :
     self.ppregex=self.p['ppregex']
     self.ppregexclude=self.p['ppregexclude']
     self.timeregex=self.p['timeregex']
-    self.percentiles=[.50,.95,.99]
+    self.percentiles=self.p['percentiles']
     self.buckets=self.p['buckets']
     self.xstats=self.p['xstats']
     self.autofocus=[]
@@ -177,11 +177,11 @@ class PPAnalyzeProcessor() :
   def printStats(self) :
     self.p['out'].h2("Stats informations")
     ths={
-       "1.Init"  : self.DFF.getDf()['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame(),
-       "2.OK"    : self.dfOK['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame(),
-       "3.KO"    : self.dfKO['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame(),
-       "4.Focus" : self.dfFocus['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame(),
-       "5.HighRespTime" : self.dfHigh['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame()
+       "1.Init"  : self.DFF.getDf()['ResponseTime'].describe(percentiles=self.percentiles).to_frame(),
+       "2.OK"    : self.dfOK['ResponseTime'].describe(percentiles=self.percentiles).to_frame(),
+       "3.KO"    : self.dfKO['ResponseTime'].describe(percentiles=self.percentiles).to_frame(),
+       "4.Focus" : self.dfFocus['ResponseTime'].describe(percentiles=self.percentiles).to_frame(),
+       "5.HighRespTime" : self.dfHigh['ResponseTime'].describe(percentiles=self.percentiles).to_frame()
     }
     self.p['out'].tables(ths)
     with pd.option_context('display.max_rows', None, 'display.max_colwidth', 0, 'display.float_format','{:.2f}'.format) :

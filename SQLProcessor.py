@@ -12,7 +12,6 @@ from Outer import *
 #--------------------------------------------------------------------------------------
 class SQLFramor() :
 
-  percentiles=[.50,.95,.99]
   pd.options.display.float_format = '{:.0f}'.format
   database=''
   fileNum=0
@@ -23,7 +22,7 @@ class SQLFramor() :
   def __init__(self,param,file) :
     self.param=param
     self.p=self.param.getAll()
-    logging.warning("DFFormatter begins")
+    self.percentiles=self.p['percentiles']
     self.file=file
     self.decimal=','
     self.remove={"Database and Connection Pool":"Sql","Acqu Time/Trans [ms]":"AcqTime","Executions/Trans":"ExecPerTrans",
@@ -34,7 +33,6 @@ class SQLFramor() :
     SQLFramor.databaseNum  = 0 
     SQLFramor.sqlNum  = 0 
     self.setRawdatas()
-    logging.warning("DFFormatter ends")
 
   @staticmethod
   def setSqlId(row) :
@@ -134,7 +132,6 @@ class SQLProcessor() :
   def setBehavior(self) :
     self.sqlregex=self.p['sqlregex']
     self.sqlregexclude=self.p['sqlregexclude']
-    self.percentiles=[.50,.95,.99]
     pd.options.display.float_format = '{:.0f}'.format
 
   #--------------------------------------------------------------------------------------

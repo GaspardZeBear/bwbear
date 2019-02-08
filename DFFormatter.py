@@ -11,7 +11,6 @@ from Outer import *
 
 class DFFormatter() :
 
-  percentiles=[.50,.95,.99]
   pd.options.display.float_format = '{:.0f}'.format
 
   #--------------------------------------------------------------------------------------
