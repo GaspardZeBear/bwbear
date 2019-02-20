@@ -49,6 +49,7 @@ class PandasGrapher() :
     self.dfall.plot(rot=45,ax=ax,grid=True,linewidth=0)
     for dg in dgList :
       style=self.param.getGraphStyle(dg['aggr'])
+      #logging.warning(dg)
       dg['dgaggr'].plot(title=title,rot=45,ax=ax,grid=True,color=style['color'],legend=True,label=dg['aggr'],linewidth=style['linewidth'])
       if dg['dgaggr'].count() < 50 :
         dg['dgaggr'].plot(title=title,rot=45,ax=ax,grid=True,legend=True,label=dg['aggr'],style=style['point'])
@@ -56,7 +57,7 @@ class PandasGrapher() :
         ax.set_ylim(ymin=0,ymax=self.p['ymax'])
       else :
         ax.set_ylim(ymin=0)
-    logging.debug("graphBasics setting axtwin")
+    #logging.debug("graphBasics setting axtwin")
     axtwin=ax.twinx()
     axtwin.set_ylabel('Count', color='lightgrey')
     dfCount=dgbase.count().reset_index()
@@ -67,7 +68,7 @@ class PandasGrapher() :
 
     dfm.plot(ax=axtwin,color='lightgrey',linestyle='--',legend=False,label='Count')
     axtwin.set_ylim(ymin=0)
-    logging.debug("title " + title)
+    #logging.debug("title " + title)
     f=self.getPngFileName(str(title))
     plt.savefig(f)
     plt.close()

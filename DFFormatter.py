@@ -27,6 +27,7 @@ class DFFormatter() :
     logging.warning("scriptpath : " + p['scriptpath'])
     self.p=p
     self.file=p['datafile']
+    self.percentiles=p['percentiles']
     self.fconf=''
     self.decimal=p['decimal']
     self.infos=dict()
@@ -122,7 +123,7 @@ class DFFormatter() :
       )
       rawdatas.rename (self.renamecolumns,
         inplace=True,axis=1)
-      self.infos['DescribeInitial']=rawdatas['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame()
+      self.infos['DescribeInitial']=rawdatas['ResponseTime'].describe(percentiles=self.percentiles).to_frame()
 
       logging.warning("Before preProcess")
       logging.warning(rawdatas.head())
@@ -146,12 +147,12 @@ class DFFormatter() :
       logging.warning("Ready ")
       logging.warning(rawdatas.head())
     else :
-      self.infos['DescribeInitial']=rawdatas['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame()
+      self.infos['DescribeInitial']=rawdatas['ResponseTime'].describe(percentiles=self.percentiles).to_frame()
       rawdatas['StartTime']=pd.to_datetime(rawdatas['StartTime'],infer_datetime_format=True)
       rawdatas['ts1m']=pd.to_datetime(rawdatas['ts1m'],infer_datetime_format=True)
       rawdatas['ts10m']=pd.to_datetime(rawdatas['ts10m'],infer_datetime_format=True)
       rawdatas['ts1h']=pd.to_datetime(rawdatas['ts1h'],infer_datetime_format=True)
-    self.infos['DescribeFinal']=rawdatas['ResponseTime'].describe(percentiles=DFFormatter.percentiles).to_frame()
+    self.infos['DescribeFinal']=rawdatas['ResponseTime'].describe(percentiles=self.percentiles).to_frame()
     self.infos['HeadFinal']=rawdatas.head(2)
     self.infos['TailFinal']=rawdatas.tail(2)
     self.df=rawdatas
