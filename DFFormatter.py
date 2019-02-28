@@ -18,8 +18,10 @@ class DFFormatter() :
   def getFromFactory(type,params) :
     if type == 'dynatrace' :
       return(DFFormatterDynatrace(params))
-    else :
+    elif type == 'jmeter'  :
       return(DFFormatterJmeter(params))
+    elif type == 'har'  :
+      return(DFFormatterHar(params))
 
   #--------------------------------------------------------------------------------------
   def __init__(self,p) :
@@ -181,6 +183,24 @@ class DFFormatterJmeter(DFFormatter) :
   #--------------------------------------------------------------------------------------
   def formatDf(self,wrangle=True) :
     self.getColumnsToProcess('jmeter.json')  
+    logging.warning(wrangle)
+    self.getRawdatas(wrangle)
+
+#--------------------------------------------------------------------------------------
+class DFFormatterHar(DFFormatter) :
+#--------------------------------------------------------------------------------------
+
+  #--------------------------------------------------------------------------------------
+  def preProcess(self,df) :
+    logging.warning(df.head(5))
+    df['ErrorState']=df.apply(lambda x: 'OK' if x['Status'] else 'KO',axis=1)
+    df['Agent']="_agent"
+    df['Application']="_application"
+    return(df)
+
+  #--------------------------------------------------------------------------------------
+  def formatDf(self,wrangle=True) :
+    self.getColumnsToProcess('har.json')
     logging.warning(wrangle)
     self.getRawdatas(wrangle)
     

@@ -1,0 +1,9 @@
+{
+  "XX" : "StartTime;Status;ResponseTime;PurePath;HeadersSize;BodySize;ConnectTime;SSSTime;SendTime;ReceiveTime;",
+
+
+  "DROPCOLUMNS" : ["HeadersSize","BodySize","ConnectTime","SSLTime","SendTime","ReceiveTime"],   
+  "RENAMECOLUMNS" : {
+      }
+}
+
