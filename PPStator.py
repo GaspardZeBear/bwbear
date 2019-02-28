@@ -17,6 +17,7 @@ class PPStator() :
     self.param=param
     self.p=self.param.getAll()
     self.xstats=pd.DataFrame()
+    
     if len(self.df) == 0 :
       return
     if self.p['xstats'] == 0 :
@@ -52,7 +53,7 @@ class PPStator() :
     #     'skew' : skew,
     }
     self.globalThru=pd.DataFrame.from_dict(d).reset_index()
-    logging.warning(self.globalThru)
+    #logging.warning(self.globalThru)
     self.setThrudf()
 
   #--------------------------------------------------------------------------------------
@@ -62,7 +63,7 @@ class PPStator() :
       self.thrudf=pd.concat([self.thrudf0,self.globalThru],axis=0)
     else :
       self.thrudf=self.globalThru
-    logging.warning(self.thrudf)
+    #logging.warning(self.thrudf)
 
     # Compute throughput infos
     self.thrudf['duration']=self.thrudf['max']-self.thrudf['min']
@@ -78,7 +79,7 @@ class PPStator() :
         inplace=True,axis=1
       )
     self.xstats.rename(columns={'min_x':'min','max_x':'max', 'count_y':'count', 'min_y':'begin','max_y':'end'},inplace=True)
-    logging.warning(self.xstats)
+    #logging.warning(self.xstats)
 
 #--------------------------------------------------------------------------------------
   def getXstats(self) :

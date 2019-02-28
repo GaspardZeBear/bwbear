@@ -17,10 +17,6 @@ from DFFormatter import *
 class PPFramor() :
 
   pd.options.display.float_format = '{:.0f}'.format
-  database=''
-  fileNum=0
-  databaseNum=0
-  sqlNum=0
 
   #--------------------------------------------------------------------------------------
   def __init__(self,param,file,tsm=None) :
@@ -33,7 +29,6 @@ class PPFramor() :
     self.ppregex=self.p['ppregex']
     self.ppregexclude=self.p['ppregexclude']
     self.percentiles=self.p['percentiles']
-    PPFramor.fileNum += 1
     self.setRawdatas()
     self.report()
     logging.warning("PPFramor ends")
@@ -56,6 +51,7 @@ class PPFramor() :
     
     ppf=PPDFFilterer(self.DFF.getDf(),self.param)
     self.datas=ppf.getDfOK()
+    self.ko=ppf.getDfKO()
     self.tsmList=self.datas['ts10m'].unique()
     if self.tsm is not None:
       self.datas=self.datas[ self.datas['ts10m'] == self.tsm ]
@@ -65,8 +61,10 @@ class PPFramor() :
   def report(self) :
     self.p['out'].h2("PP from " + self.file)
     self.ppStator=PPStator(self.param,self.datas)
+    self.ppStatorKO=PPStator(self.param,self.ko)
     with pd.option_context('display.max_rows', None, 'display.max_colwidth', 0, 'display.float_format','{:.2f}'.format) :
       self.p['out'].out("Summary stats",self.ppStator.getXstats(),escape=False)
+      self.p['out'].out("Error stats",self.ppStatorKO.getXstats(),escape=False)
 
 #--------------------------------------------------------------------------------------
   def getTsmlist(self,tsm) :
@@ -184,15 +182,17 @@ class PPCompareProcessor() :
     self.p['out'].setPPdiv("PPCompareProcessor")
     self.dfs=[]
     logging.warning(self.p)
+    self.dfs.append(PPFramor(self.param,self.p['file1']))
     if ('file2' in self.p) & (self.p['file2'] is not None) :
       self.p['out'].h1('PPCompareProcessor compare ' + self.p['file1'] + ' and ' + self.p['file2'])
-      self.dfs.append(PPFramor(self.param,self.p['file1']))
+      #self.dfs.append(PPFramor(self.param,self.p['file1']))
       self.dfs.append(PPFramor(self.param,self.p['file2']))
     else :
-      self.p['out'].h1('PPCompareProcessor autocompare ' + self.p['file1'])
-      fr=PPFramor(self.param,self.p['file1'])
-      for tsm in fr.getTsmlist('ts10m') :
-        self.dfs.append(PPFramor(self.param,self.p['file1'],tsm))
+      self.dfs.append(PPFramor(self.param,self.p['file1']))
+      #self.p['out'].h1('PPCompareProcessor autocompare ' + self.p['file1'])
+      #fr=PPFramor(self.param,self.p['file1'])
+      #for tsm in fr.getTsmlist('ts10m') :
+      #  self.dfs.append(PPFramor(self.param,self.p['file1'],tsm))
       pass
 
   #--------------------------------------------------------------------------------------

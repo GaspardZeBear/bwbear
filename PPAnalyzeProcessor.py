@@ -107,13 +107,18 @@ class PPAnalyzeProcessor() :
   
   #--------------------------------------------------------------------------------------
   def groupByDescribe(self,datas,grps,title='') :
-    logging.warning("groupByDescribe " + str(grps))
+    logging.warning("groupByDescribe :  groups=" + str(grps) + " title=" + title)
     if datas.empty :
       return
     dg=datas.groupby(grps)['ResponseTime']
-    self.p['out'].out("GroupBy "  +  str(grps) + " " + title + " statistics" ,dg.describe(percentiles=self.percentiles))
+    myTitle="GroupBy.GRPS="  +  str(grps) + ".TITLE=" + title + ".describe"
+    csv=str(myTitle).translate(None,' \'/,:;\[]()-*#&') + '.csv'
+    dg.describe(percentiles=self.percentiles).to_csv(csv,sep=";")
 
-    logging.warning(dg.groups.keys())
+    myTitle="GroupBy "  +  str(grps) + " " + title + " statistics"
+    self.p['out'].out(myTitle,dg.describe(percentiles=self.percentiles))
+
+    logging.warning("keys in the groupby : " + str(dg.groups.keys()))
     if (self.xstats > 2) and (grps[0] != 'PurePath') : 
       with pd.option_context('display.max_rows', None, 'display.max_colwidth', 0, 'display.float_format','{:.2f}'.format) :
         for k in dg.groups.keys() : 
