@@ -19,7 +19,10 @@ class Parser :
 
     def accum(self,base,val,quote='') :
         if base :
-          return(quote + str(base[val]) + quote + ';')
+          if val in base :
+            return(quote + str(base[val]) + quote + ';')
+          else :
+            return(quote + str(val) + quote + ';')
         else :
           return(quote + str(val) + quote + ';')
 
@@ -43,12 +46,6 @@ class Parser2Pan(Parser) :
         s += self.accum(e,'time')
         s += self.accum(None,'_Agent')
         s += self.accum(None,'_Application')
-        #s += self.accum(e['response'],'status')
-        #s += self.accum(None,e['startedDateTime'][0:23].replace('T',' '))
-        #s += self.accum(None,e['startedDateTime'][0:23].replace('T',' '))
-        #s += self.accum(None,e['startedDateTime'][0:19].replace('T',' ') + '.000')
-        #s += self.accum(None,e['startedDateTime'][0:18].replace('T',' ') + '0.000')
-        #s += self.accum(None,e['startedDateTime'][0:14].replace('T',' ') + '00:00.000')
         s += self.accum(None,e['startedDateTime'][0:19].replace('T',' '))
         s += self.accum(None,e['startedDateTime'][0:19].replace('T',' '))
         s += self.accum(None,e['startedDateTime'][0:17].replace('T',' ') + '00' )
@@ -63,13 +60,14 @@ class Parser2Pan(Parser) :
 class Parser2Csv(Parser) :
 
     def printHeader(self) :
-        print("StartTime;Status;ResponseTime;PurePath;HeadersSize;BodySize;ConnectTime;SSLTime;SendTime;ReceiveTime;")
+        print("StartTime;Status;ResponseTime;Pageref;PurePath;HeadersSize;BodySize;ConnectTime;SSLTime;SendTime;ReceiveTime;")
 
     def parseEntry(self,e) :
         s =''
         s += self.accum(None,e['startedDateTime'].replace('T',' ')[:23])
         s += self.accum(e['response'],'status')
         s += self.accum(e,'time')
+        s += self.accum(e,'pageref')
         s += self.accum(None,self.getUrl(e['request']['url']),'"')
         s += self.accum(e['response'],'headersSize')
         s += self.accum(e['response'],'bodySize')

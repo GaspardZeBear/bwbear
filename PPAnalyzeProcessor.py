@@ -156,6 +156,7 @@ class PPAnalyzeProcessor() :
     self.dfKO=ppf.getDfKO()
     self.dfall=ppf.getDfall()
     self.grapher.setDfall(self.dfall)
+    logging.warning(self.dfOK)
     self.setAutofocus(self.computeAutofocus(self.dfOK))
     self.dfFocus=self.dfOK[ self.dfOK['PurePath'].isin( self.getFocusedPurepaths()) ]
     self.dfHigh=self.dfOK[ ( self.dfOK['ResponseTime'] > self.p['highResponseTime'] ) ]

@@ -109,7 +109,9 @@ class DFFormatter() :
 
   #--------------------------------------------------------------------------------------
   def getRawdatas(self,wrangle=True) :
-    rawdatas=pd.read_csv(self.file,sep=';',decimal=self.decimal)
+    # Sometimes dynatrace inserts '-' for response time N/A
+    na=["-"]
+    rawdatas=pd.read_csv(self.file,sep=';',decimal=self.decimal,dna_values=na)
     logging.warning(rawdatas.dtypes)
     self.infos['HeadInitial']=rawdatas.head(2)
     self.infos['TailInitial']=rawdatas.tail(2)
@@ -137,6 +139,8 @@ class DFFormatter() :
         rawdatas=rawdatas[rawdatas.PurePath.str.contains(pp)==False]
       logging.warning("After dropRows")
       logging.warning(rawdatas.head())
+      #rawdatas['ResponseTime']=pd.to_numeric(rawdatas['ResponseTime'],errors='coerce')
+      #rawdatas['ResponseTime']=rawdatas['ResponseTime'].str.replace(",",".").astype('float64')
       rawdatas['PurePath']=rawdatas['PurePath'].map(self.coalesceUrl)
       rawdatas['StartTimeStr']=rawdatas['StartTime']
       rawdatas['StartTime']=pd.to_datetime(rawdatas['StartTime'],infer_datetime_format=True)
@@ -162,6 +166,28 @@ class DFFormatter() :
 #--------------------------------------------------------------------------------------
 class DFFormatterDynatrace(DFFormatter) :
 #--------------------------------------------------------------------------------------
+
+  @staticmethod
+  def setStatus(r) :
+    #logging.warning(r)
+    status=r['ErrorState']
+    if status == 'OK' :
+      new='OK'
+    elif status == 'Error' :
+      new='OK'
+    else :
+      new='KO'
+    return(new)
+    #logging.warning(status + " -> " + new)
+    
+  #--------------------------------------------------------------------------------------
+  def preProcess(self,df) :
+    logging.warning(df.head(5))
+    df['ErrorState']=df.apply(DFFormatterDynatrace.setStatus ,axis=1)
+    logging.warning(df.head(5))
+    return(df)
+
+  #--------------------------------------------------------------------------------------
   def formatDf(self,wrangle=True) :
     self.getColumnsToProcess('dynatrace.json')  
     self.getRawdatas(wrangle)
