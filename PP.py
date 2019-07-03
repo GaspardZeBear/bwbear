@@ -33,6 +33,7 @@ def main1():
 @click.option('--type', default='dynatrace')
 @click.option('--verbose', is_flag=True, default=False)
 @click.option('--quick', is_flag=True, default=False)
+@click.option('--tocsvs', is_flag=True, default=False)
 @click.option('--nobuckets', is_flag=True, default=False)
 @click.option('--nodescribe', is_flag=True, default=False)
 @click.option('--nographs', is_flag=True, default=False)
@@ -57,6 +58,7 @@ def ppanalyze(
   type,
   verbose,
   quick,
+  tocsvs,
   nobuckets,
   nodescribe,
   nographs
@@ -77,6 +79,7 @@ def ppanalyze(
   p.set('decimal',decimal)
   p.set('ymax',ymax)
   p.set('xstats',xstats)
+  p.set('tocsvs',tocsvs)
   p.set('ppregex',ppregex)
   p.set('timeregex',timeregex)
   p.set('ppregexclude',ppregexclude)

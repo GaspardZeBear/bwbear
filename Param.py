@@ -62,6 +62,8 @@ class Param() :
       self.p['nobuckets'] = False
     if 'nographs' not in self.p :
       self.p['nographs'] = False
+    if 'tocsvs' not in self.p :
+      self.p['tocsvs'] = False
     if 'output' in self.p :
       if self.p['output'] ==  'html' :
         logging.warning("Output HTML")

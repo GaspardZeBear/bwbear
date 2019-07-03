@@ -112,8 +112,9 @@ class PPAnalyzeProcessor() :
       return
     dg=datas.groupby(grps)['ResponseTime']
     myTitle="GroupBy.GRPS="  +  str(grps) + ".TITLE=" + title + ".describe"
-    csv=str(myTitle).translate(None,' \'/,:;\[]()-*#&') + '.csv'
-    dg.describe(percentiles=self.percentiles).to_csv(csv,sep=";")
+    if self.p['tocsvs'] : 
+      csv=str(myTitle).translate(None,' \'/,:;\[]()-*#&') + '.csv'
+      dg.describe(percentiles=self.percentiles).to_csv(csv,sep=";")
 
     myTitle="GroupBy "  +  str(grps) + " " + title + " statistics"
     self.p['out'].out(myTitle,dg.describe(percentiles=self.percentiles))

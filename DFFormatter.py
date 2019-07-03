@@ -111,7 +111,7 @@ class DFFormatter() :
   def getRawdatas(self,wrangle=True) :
     # Sometimes dynatrace inserts '-' for response time N/A
     na=["-"]
-    rawdatas=pd.read_csv(self.file,sep=';',decimal=self.decimal,dna_values=na)
+    rawdatas=pd.read_csv(self.file,sep=';',decimal=self.decimal,na_values=na)
     logging.warning(rawdatas.dtypes)
     self.infos['HeadInitial']=rawdatas.head(2)
     self.infos['TailInitial']=rawdatas.tail(2)
