@@ -19,8 +19,32 @@ class PPDFFilterer() :
     self.ppregex=self.p['ppregex']
     self.ppregexclude=self.p['ppregexclude']
     self.timeregex=self.p['timeregex']
+    self.start=self.p['start']
+    self.end=self.p['end']
     self.buildDataframes()
     self.filtered=0
+
+  #--------------------------------------------------------------------------------------
+  def startFilter(self,val):
+    if val:
+        if val >= self.start :
+            return True
+        else:
+            return False
+    else:
+        return False
+
+  #--------------------------------------------------------------------------------------
+  def endFilter(self,val):
+    #logging.warning(self.end + " " + val)
+    if val:
+        if val <= self.end :
+            return True
+        else:
+            return False
+    else:
+        return False
+
 
   #--------------------------------------------------------------------------------------
   def timeregexFilter(self,val):
@@ -97,5 +121,11 @@ class PPDFFilterer() :
     if len(self.timeregex) > 0 :
       logging.warning("Apply timeregex filter")
       rawdatas=rawdatas[rawdatas['StartTimeStr'].apply(self.timeregexFilter)]
+    if len(self.start) > 0  :
+      logging.warning("Apply start filter")
+      rawdatas=rawdatas[rawdatas['StartTimeStr'].apply(self.startFilter)]
+    if len(self.end) > 0  :
+      logging.warning("Apply end filter")
+      rawdatas=rawdatas[rawdatas['StartTimeStr'].apply(self.endFilter)]
     self.filtered=sizein - len(rawdatas.index)
     return(rawdatas)

@@ -126,5 +126,9 @@ class Param() :
       self.p['ppregexclude']=''
     if 'percentiles' not in self.p :
       self.p['percentiles']=[.50,.95,.99]
+    if 'start' not in self.p :
+      self.p['start']=''
+    if 'end' not in self.p :
+      self.p['end']=''
 
 

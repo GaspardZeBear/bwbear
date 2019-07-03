@@ -27,6 +27,8 @@ def main1():
 @click.option('--xstats', default=1)
 @click.option('--ppregex', default='')
 @click.option('--timeregex', default='')
+@click.option('--start', default='')
+@click.option('--end', default='')
 @click.option('--steps', default='')
 @click.option('--ppregexclude', default='')
 @click.option('--workdir', default='')
@@ -52,6 +54,8 @@ def ppanalyze(
   xstats,
   ppregex,
   timeregex,
+  start,
+  end,
   steps,
   ppregexclude,
   workdir,
@@ -81,6 +85,8 @@ def ppanalyze(
   p.set('xstats',xstats)
   p.set('tocsvs',tocsvs)
   p.set('ppregex',ppregex)
+  p.set('start',start)
+  p.set('end',end)
   p.set('timeregex',timeregex)
   p.set('ppregexclude',ppregexclude)
   p.set('type',type)
