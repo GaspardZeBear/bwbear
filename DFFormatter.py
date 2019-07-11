@@ -152,6 +152,8 @@ class DFFormatter() :
       rawdatas.to_csv(self.file + '.pan',sep=';',index=False)
       logging.warning("Ready ")
       logging.warning(rawdatas.head())
+      print("File " + self.file + " wrangled you can use " + self.file + '.pan')
+      sys.exit() 
     else :
       self.infos['DescribeInitial']=rawdatas['ResponseTime'].describe(percentiles=self.percentiles).to_frame()
       rawdatas['StartTime']=pd.to_datetime(rawdatas['StartTime'],infer_datetime_format=True)

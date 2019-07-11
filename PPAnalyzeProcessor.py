@@ -59,7 +59,9 @@ class PPAnalyzeProcessor() :
     logging.warning("datas binning " + title)
     dg=datas.groupby(bins)['ResponseTime']
     logging.warning("datas binned " + title)
-    self.p['out'].out(title + " buckets",dg.describe(percentiles=self.percentiles))
+    dgDesc=dg.describe(percentiles=self.percentiles)
+    dgDesc['ratio']=dgDesc['count']*100/datas['ResponseTime'].count()
+    self.p['out'].out(title + " buckets",dgDesc)
     if not self.nobuckets :
       self.grapher.myPlotBar(dg,'Buckets for ' + title)
     #else :
@@ -157,7 +159,7 @@ class PPAnalyzeProcessor() :
     self.dfKO=ppf.getDfKO()
     self.dfall=ppf.getDfall()
     self.grapher.setDfall(self.dfall)
-    logging.warning(self.dfOK)
+    #logging.warning(self.dfOK)
     self.setAutofocus(self.computeAutofocus(self.dfOK))
     self.dfFocus=self.dfOK[ self.dfOK['PurePath'].isin( self.getFocusedPurepaths()) ]
     self.dfHigh=self.dfOK[ ( self.dfOK['ResponseTime'] > self.p['highResponseTime'] ) ]
