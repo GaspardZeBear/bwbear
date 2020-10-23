@@ -59,9 +59,9 @@ class DFFormatter() :
       self.autofocus=[]
       self.focus=self.json['FOCUS']
       self.ppalias=self.json['PPALIAS']
-      #self.dropcolumns=self.json['DROPCOLUMNS']
+      self.dropcolumns=self.json['DROPCOLUMNS']
       self.droprows=self.json['DROPROWS']
-      #self.renamecolumns=self.json['RENAMECOLUMNS']
+      self.renamecolumns=self.json['RENAMECOLUMNS']
       logging.warning(self.json)
 
   #--------------------------------------------------------------------------------------
@@ -111,7 +111,8 @@ class DFFormatter() :
   def getRawdatas(self,wrangle=True) :
     # Sometimes dynatrace inserts '-' for response time N/A
     na=["-"]
-    rawdatas=pd.read_csv(self.file,sep=';',decimal=self.decimal,na_values=na)
+    sep=","
+    rawdatas=pd.read_csv(self.file,sep=sep,decimal=self.decimal,na_values=na)
     logging.warning(rawdatas.dtypes)
     self.infos['HeadInitial']=rawdatas.head(2)
     self.infos['TailInitial']=rawdatas.tail(2)
@@ -121,6 +122,7 @@ class DFFormatter() :
     if wrangle :
       self.wrangle=True
       logging.warning("Wrangling file " + self.file)
+      logging.warning(self.dropcolumns)
       rawdatas.drop (
         self.dropcolumns,
         inplace=True,axis=1
@@ -149,7 +151,7 @@ class DFFormatter() :
       rawdatas['ts10m']=rawdatas.apply(lambda x: x['StartTime'].floor('10min'),axis=1)
       rawdatas['ts1h']=rawdatas.apply(lambda x: x['StartTime'].floor('1h'),axis=1)
       rawdatas['Error']=rawdatas.apply(lambda x: 0 if x['ErrorState'] == 'OK' else 1,axis=1)
-      rawdatas.to_csv(self.file + '.pan',sep=';',index=False)
+      rawdatas.to_csv(self.file + '.pan',sep=sep,index=False)
       logging.warning("Ready ")
       logging.warning(rawdatas.head())
       print("File " + self.file + " wrangled you can use " + self.file + '.pan')

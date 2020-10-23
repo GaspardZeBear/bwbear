@@ -1,0 +1,18 @@
+{
+"COALESCE": { },
+"FOCUS": [],
+"DROPROWS" : [],
+"PPALIAS": { },
+
+  "XX" : "timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,Latency,IdleTime,Connect",
+  "xxx" : "timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect",
+
+  "DROPCOLUMNS" : ["dataType","failureMessage","bytes","sentBytes","grpThreads","allThreads","Latency","IdleTime","Connect"],
+  "RENAMECOLUMNS" : {
+        "success" : "ErrorState",
+        "label" : "PurePath",
+        "elapsed" : "ResponseTime",
+        "timeStamp" : "StartTime"
+      }
+}
+

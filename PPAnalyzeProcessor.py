@@ -80,7 +80,7 @@ class PPAnalyzeProcessor() :
     logging.warning("describe end " + title)
 
   #--------------------------------------------------------------------------------------
-  def myGraphs(self,datas,title,describe=['Agent','PurePath','Application']) :
+  def myGraphs(self,datas,title,describe=['Agent','responseCode','PurePath','Application']) :
     logging.warning("myGraphs begin " + title + " " + str(describe))
     if datas.empty :
       return
@@ -227,7 +227,7 @@ class PPAnalyzeProcessor() :
   @Step('OK')
   def printOK(self) :
     self.p['out'].h2("Analyzing " + str(len(self.dfOK)) + " transactions in status OK (" + str(self.filtered) + " have been filtered) ")
-    self.myGraphs(self.dfOK, 'OK',["PurePath","Agent","Application"])
+    self.myGraphs(self.dfOK, 'OK',["PurePath","responseCode","Agent","Application"])
     if not self.quick :
       for agent in self.dfOK['Agent'].unique() :
         self.myGraphs(self.dfOK[self.dfOK['Agent'] == agent ], 'Agent  Detail' + agent)
